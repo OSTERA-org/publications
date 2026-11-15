@@ -1,0 +1,15 @@
+# Working groups, in the order they are shown on the home page.
+# A working group is only shown once it has at least one document in
+# documents.yml.
+#
+#   id:    short name, as used at https://wg.ostera.org/<id>/
+#   name:  full name of the working group
+
+- id: crgm
+  name: "Cyber Risk Governance Metrics (CRGM)"
+
+- id: cnscp
+  name: "Connectivity Naming System using Connection Profiles (CNSCP)"
+
+- id: jss
+  name: "JSON Signature Scheme (JSS)"

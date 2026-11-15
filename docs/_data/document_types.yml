@@ -1,0 +1,34 @@
+# OSTERA document types, as listed in IPR.md.
+#
+#   code:    the type code used in document identifiers (for example TS)
+#   name:    the full name of the type
+#   patents: whether the patent licensing obligations of the IPR and
+#            Copyright Policy apply
+
+- code: STD
+  name: "Standard"
+  patents: "Yes"
+
+- code: TS
+  name: "Technical Specification"
+  patents: "Yes"
+
+- code: SUP
+  name: "Supplement"
+  patents: "Same as the document it supplements"
+
+- code: TN
+  name: "Technical Note"
+  patents: "No"
+
+- code: TP
+  name: "Technical Paper"
+  patents: "No"
+
+- code: TR
+  name: "Technical Report"
+  patents: "No"
+
+- code: PD
+  name: "Policy/Process Document"
+  patents: "Not applicable"

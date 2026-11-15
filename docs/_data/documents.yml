@@ -1,0 +1,32 @@
+# Documents shown on pub.ostera.org.
+#
+#   id:       short name, also the folder name in docs (for example jcs)
+#   title:    full title of the document
+#   number:   document identifier (for example "OSTERA TS 1000"), or
+#             leave empty until one is assigned
+#   type:     type code from document_types.yml (for example TS)
+#   wg:       id of the working group from working_groups.yml
+#   summary:  one sentence describing the document
+#   status:   shown only while there are no published versions, for
+#             example "Public review"
+#   versions: published versions, newest first. Each version has:
+#               version: version number (for example "1.0")
+#               date:    publication date (YYYY-MM-DD)
+#               note:    optional, for example "Erratum 1 applied"
+#             The version is served from docs/<id>/v<version>/.
+#
+# Example of a document with a published version:
+#
+#   versions:
+#     - version: "1.0"
+#       date: 2027-01-15
+#       note: ""
+
+- id: jcs
+  title: "JSON Canonicalization Scheme (JCS)"
+  number: ""
+  type: TS
+  wg: jss
+  summary: "A canonical form for JSON data, so that the same data always produces the same bytes for hashing and signing."
+  status: "Public review"
+  versions: []

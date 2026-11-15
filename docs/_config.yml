@@ -1,0 +1,26 @@
+# Jekyll configuration for pub.ostera.org, the OSTERA publications site.
+# GitHub Pages builds this folder (branch main, folder /docs).
+# Do not set baseurl. This site is served from the root of pub.ostera.org.
+#
+# Published documents are prebuilt HTML in folders such as jcs/v1.0/.
+# Files without front matter are copied exactly as they are, so the
+# published documents are never changed by the build.
+
+title: "OSTERA Publications"
+short_title: "Publications"
+description: "Approved documents published by OSTERA, the Open Standards and Technology Engineering and Research Association."
+
+remote_theme: OSTERA-org/ostera-pages-theme
+plugins:
+  - jekyll-remote-theme
+
+ostera_section: pub
+source_url: https://github.com/OSTERA-org/Publications
+
+navigation:
+  - title: Home
+    url: /
+  - title: About These Documents
+    url: /about/
+  - title: Public Reviews
+    url: https://ostera.org/public-reviews

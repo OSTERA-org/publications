@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/OSTERA-org/Publications/main/schemas/metadata.schema.json",
+  "$id": "https://raw.githubusercontent.com/OSTERA-org/publications/main/schemas/metadata.schema.json",
   "title": "OSTERA Document Metadata",
   "description": "Everything about a published OSTERA document except its allocation record, which lives in registry.yaml.",
   "type": "object",

@@ -18,6 +18,11 @@ import (
 // filenameRE is the normative filename grammar from the publishing process.
 var filenameRE = regexp.MustCompile(`^OSTERA-([A-Z]{2,3})-([0-9]{4,})-([0-9]{4})-([A-Z][A-Z0-9]*)-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))?(-(ERRATUM|CORRIGENDUM)-([1-9][0-9]*))?-([a-z]{2})\.([a-z0-9]+)$`)
 
+// draftRE is the naming rule for drafts in the Working Group
+// repositories, which a public review keeps: draft-<type code, lowercase>-
+// <short name>-<draft number, at least two digits>.<format>.
+var draftRE = regexp.MustCompile(`^draft-([a-z]{2,3})-([a-z][a-z0-9]*)-([0-9]{2,})\.([a-z0-9]+)$`)
+
 var (
 	idRE      = regexp.MustCompile(`^[a-z][a-z0-9]*$`)
 	typeRE    = regexp.MustCompile(`^[A-Z]{2,3}$`)
@@ -107,7 +112,8 @@ func sumsContent(dir string, names []string) (string, error) {
 	return b.String(), nil
 }
 
-// artifactsIn lists the files in dir that look like published artifacts.
+// artifactsIn lists the files in dir that look like published artifacts
+// or review drafts.
 func artifactsIn(dir string) ([]string, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -115,7 +121,7 @@ func artifactsIn(dir string) ([]string, error) {
 	}
 	var names []string
 	for _, e := range entries {
-		if !e.IsDir() && strings.HasPrefix(e.Name(), "OSTERA-") {
+		if !e.IsDir() && (strings.HasPrefix(e.Name(), "OSTERA-") || strings.HasPrefix(e.Name(), "draft-")) {
 			names = append(names, e.Name())
 		}
 	}
@@ -123,18 +129,18 @@ func artifactsIn(dir string) ([]string, error) {
 	return names, nil
 }
 
-// writeSums writes SHA512SUMS for every artifact in dir.
+// writeSums writes SHA512SUMS for every artifact or review draft in dir.
 func writeSums(dir string) error {
 	names, err := artifactsIn(dir)
 	if err != nil {
 		return err
 	}
 	if len(names) == 0 {
-		return fmt.Errorf("%s: no OSTERA- artifacts found", dir)
+		return fmt.Errorf("%s: no OSTERA- or draft- files found", dir)
 	}
 	for _, n := range names {
-		if !filenameRE.MatchString(n) {
-			return fmt.Errorf("%s: %s does not match the filename grammar", dir, n)
+		if !filenameRE.MatchString(n) && !draftRE.MatchString(n) {
+			return fmt.Errorf("%s: %s does not match the filename grammar or the draft naming rule", dir, n)
 		}
 	}
 	content, err := sumsContent(dir, names)

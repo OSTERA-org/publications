@@ -125,7 +125,7 @@ type Document struct {
 // leading zero (0010 becomes 8, read as octal).
 var (
 	unquotedVersionRE = regexp.MustCompile(`(?m)^\s*(?:-\s+)?version:\s*[0-9]`)
-	leadingZeroRE     = regexp.MustCompile(`(?m)^\s*(?:-\s+)?(?:number|sequence|supplements):\s*0[0-9]`)
+	leadingZeroRE     = regexp.MustCompile(`(?m)^\s*(?:-\s+)?(?:number|sequence|supplements|draft):\s*0[0-9]`)
 	leadingZeroListRE = regexp.MustCompile(`(?m)^\s*(?:supplemented_by|related):\s*\[[^\]]*\b0[0-9]`)
 )
 
@@ -200,13 +200,14 @@ const (
 // reservedShortnames cannot be used as short names, because each short
 // name is also a top level path on the site and these are taken by site
 // pages or are commonly used for site files.
-var reservedShortnames = []string{"about", "assets", "catalog", "css", "fonts", "images", "index", "js"}
+var reservedShortnames = []string{"about", "assets", "catalog", "css", "fonts", "images", "index", "js", "reviews"}
 
 // loadDocuments reads every docs/<dir>/metadata.yaml. Files directly in
 // docs/ are site files (such as index.md, about.md, 404.md, CNAME, and
-// _config.yml), and folders starting with _ or . belong to Jekyll, so
-// neither is a document. Any other folder is a document, and one with
-// no metadata.yaml is reported.
+// _config.yml), folders starting with _ or . belong to Jekyll, and
+// docs/reviews holds the public reviews, so none of these is a document.
+// Any other folder is a document, and one with no metadata.yaml is
+// reported.
 func loadDocuments(root string, p *Problems) []Document {
 	base := filepath.Join(root, docsDir)
 	entries, err := os.ReadDir(base)
@@ -220,7 +221,7 @@ func loadDocuments(root string, p *Problems) []Document {
 	var docs []Document
 	for _, e := range entries {
 		rel := docsDir + "/" + e.Name()
-		if !e.IsDir() || strings.HasPrefix(e.Name(), "_") || strings.HasPrefix(e.Name(), ".") {
+		if !e.IsDir() || strings.HasPrefix(e.Name(), "_") || strings.HasPrefix(e.Name(), ".") || rel == reviewsDir {
 			continue
 		}
 		mpath := rel + "/metadata.yaml"

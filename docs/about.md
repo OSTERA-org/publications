@@ -39,7 +39,7 @@ Every publication is listed in [catalog.json](/catalog.json), and each document'
 
 ## Public Reviews
 
-OSTERA encourages public comment on each draft before final approval. Public reviews are announced at [ostera.org/public-reviews](https://ostera.org/public-reviews). Comments are submitted through the working group's GitHub repository or by email to [public-review@ostera.org](mailto:public-review@ostera.org).
+OSTERA encourages public comment on each draft before final approval. Every work item goes through at least one public review of at least 30 days. Current and past public reviews are listed on the [Public Reviews](/reviews/) page. Comments are submitted through the working group's GitHub repository or by email to [public-review@ostera.org](mailto:public-review@ostera.org).
 
 ## Reporting an Error
 

@@ -16,15 +16,15 @@ import (
 // all metadata loaded, since generation needs them.
 func validate(root string) *Problems {
 	p := &Problems{}
-	reg := loadRegistry(root, p)
-	docs := loadDocuments(root, p)
-	if reg == nil {
+	st := loadSite(root, p)
+	if st == nil {
 		return p
 	}
-	checkRegistry(reg, p)
-	checkDocuments(root, reg, docs, true, p)
+	checkRegistry(st.reg, p)
+	checkDocuments(root, st.reg, st.docs, true, p)
+	checkReviews(root, st, true, p)
 	if p.Len() == 0 {
-		checkGenerated(root, reg, docs, p)
+		checkGenerated(root, st, p)
 	}
 	return p
 }
@@ -414,7 +414,7 @@ func checkFiles(root string, d Document, p *Problems) {
 
 	for dir, v := range wantVersions {
 		rel := d.Dir + "/" + dir
-		checkArtifactDir(root, rel, expectedVersionFiles(m, v), true, p)
+		checkArtifactDir(root, rel, expectedVersionFiles(m, v), []string{pageFile}, p)
 	}
 	switch {
 	case hasCorrections && !sawCorrections:
@@ -422,15 +422,16 @@ func checkFiles(root string, d Document, p *Problems) {
 	case !hasCorrections && sawCorrections:
 		p.Addf(d.Dir+"/corrections", "exists, but metadata.yaml lists no corrections")
 	case hasCorrections:
-		checkArtifactDir(root, d.Dir+"/corrections", expectedCorrectionFiles(m), false, p)
+		checkArtifactDir(root, d.Dir+"/corrections", expectedCorrectionFiles(m), nil, p)
 	}
 }
 
 // checkArtifactDir checks that rel holds exactly the expected artifacts
 // plus SHA512SUMS, and that SHA512SUMS is exactly right. A version
-// directory also holds its generated landing page (withPage), which is
-// not an artifact and is not listed in SHA512SUMS.
-func checkArtifactDir(root, rel string, want []string, withPage bool, p *Problems) {
+// directory also holds its generated landing page, and a review directory
+// its page and review.yaml (other); these are not artifacts and are not
+// listed in SHA512SUMS.
+func checkArtifactDir(root, rel string, want []string, other []string, p *Problems) {
 	abs := filepath.Join(root, rel)
 	entries, err := os.ReadDir(abs)
 	if err != nil {
@@ -440,7 +441,7 @@ func checkArtifactDir(root, rel string, want []string, withPage bool, p *Problem
 	have := map[string]bool{}
 	for _, e := range entries {
 		name := e.Name()
-		if name == sumsFile || (withPage && name == pageFile) {
+		if name == sumsFile || contains(other, name) {
 			continue
 		}
 		if e.IsDir() {
@@ -449,8 +450,8 @@ func checkArtifactDir(root, rel string, want []string, withPage bool, p *Problem
 		}
 		have[name] = true
 		if !contains(want, name) {
-			if !filenameRE.MatchString(name) {
-				p.Addf(rel+"/"+name, "does not match the filename grammar")
+			if !filenameRE.MatchString(name) && !draftRE.MatchString(name) {
+				p.Addf(rel+"/"+name, "does not match the filename grammar or the draft naming rule")
 			} else {
 				p.Addf(rel+"/"+name, "is not expected from metadata.yaml (check type, number, year, short name, version, language, and format)")
 			}

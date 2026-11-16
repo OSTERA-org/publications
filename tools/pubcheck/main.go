@@ -8,15 +8,18 @@
 //	pubcheck [-root DIR] generate
 //	pubcheck [-root DIR] checksums DIR...
 //
-// validate checks registry.yaml, every metadata.yaml, every published file,
-// every checksum, and every generated file. With -base, it also checks that
-// nothing published since REF was changed, removed, or renamed.
+// validate checks registry.yaml, every metadata.yaml, every review.yaml,
+// every published file, every review draft, every checksum, and every
+// generated file. With -base, it also checks that nothing published or
+// announced since REF was changed, removed, or renamed.
 //
 // generate writes the landing page (index.md) of each document and each
-// version, docs/catalog.json, and the generated sections of docs/index.md
-// and docs/about.md.
+// version, the page of each public review and of each review history,
+// docs/catalog.json, and the generated sections of docs/index.md,
+// docs/about.md, and docs/reviews/index.md.
 //
-// checksums writes SHA512SUMS for each named directory.
+// checksums writes SHA512SUMS for each named directory: a version, a
+// corrections folder, or a public review.
 //
 // Without -root, pubcheck looks for registry.yaml in the current directory
 // and its parents.
@@ -79,7 +82,7 @@ func run(args []string) int {
 			fmt.Fprintf(os.Stdout, "\nnothing generated: fix the %d problem(s) above first\n", p.Len())
 			return 1
 		}
-		fmt.Println("generated the landing pages, catalog.json, and the sections of index.md and about.md")
+		fmt.Println("generated the landing pages, the public review pages, catalog.json, and the sections of index.md, about.md, and reviews/index.md")
 		return 0
 
 	case "checksums":

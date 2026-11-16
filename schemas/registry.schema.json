@@ -135,7 +135,8 @@
                     "fonts",
                     "images",
                     "index",
-                    "js"
+                    "js",
+                    "reviews"
                   ]
                 }
               }

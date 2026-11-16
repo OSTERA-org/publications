@@ -13,8 +13,9 @@ import (
 
 // checkHistory enforces the rules that only make sense against an earlier
 // state of the repository: published version files never change, numbers
-// are never removed or renamed, and published version entries are only
-// changed in the ways the process allows. It compares the merge base of
+// are never removed or renamed, published version entries are only
+// changed in the ways the process allows, and an announced public review
+// keeps its files and changes only in the ways the process allows. It compares the merge base of
 // base and HEAD with the working tree, so it works both in CI and locally
 // before anything is committed.
 func checkHistory(root, base string, p *Problems) error {
@@ -31,6 +32,9 @@ func checkHistory(root, base string, p *Problems) error {
 	oldDocs, curDocs := map[string]*Metadata{}, map[string]*Metadata{}
 	for _, c := range changes {
 		short := strings.SplitN(strings.TrimPrefix(c.path, docsDir+"/"), "/", 2)[0]
+		if docsDir+"/"+short == reviewsDir {
+			continue
+		}
 		if _, seen := oldDocs[short]; seen {
 			continue
 		}
@@ -56,6 +60,10 @@ func checkHistory(root, base string, p *Problems) error {
 				compareRegistry(old, cur, p)
 			}
 		}
+	}
+
+	if err := compareReviews(root, mb, p); err != nil {
+		return err
 	}
 
 	out, err := git(root, "ls-tree", "-r", "--name-only", mb, "--", docsDir)
@@ -119,6 +127,10 @@ func changedPaths(root, mb string) ([]change, error) {
 // current.
 func checkChangedPath(root, mb string, c change, oldDocs, curDocs map[string]*Metadata, p *Problems) {
 	parts := strings.Split(c.path, "/")
+	if len(parts) > 1 && parts[0]+"/"+parts[1] == reviewsDir {
+		checkReviewPath(root, mb, c, p)
+		return
+	}
 	if len(parts) != 4 || parts[0] != docsDir {
 		return
 	}

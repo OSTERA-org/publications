@@ -5,8 +5,10 @@
 # Each published document has a folder, such as jcs/, holding its
 # metadata.yaml and one folder per version, such as jcs/v1.0/. The
 # index.md landing pages, catalog.json, and the marked sections of
-# index.md and about.md are written by pubcheck (tools/pubcheck); do not
-# edit them by hand. Published files (PDF and the like) and SHA512SUMS
+# index.md, about.md, and reviews/index.md are written by pubcheck
+# (tools/pubcheck); do not edit them by hand. Public reviews are in
+# reviews/<shortname>/<draft>/, each with a review.yaml and its own
+# generated index.md. Published files (PDF and the like) and SHA512SUMS
 # have no front matter, so Jekyll copies them exactly as they are.
 
 title: "OSTERA Publications"
@@ -26,4 +28,4 @@ navigation:
   - title: About These Documents
     url: /about/
   - title: Public Reviews
-    url: https://ostera.org/public-reviews
+    url: /reviews/

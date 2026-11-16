@@ -52,7 +52,7 @@ working_groups:
 #            It is the folder name under docs/ and the address
 #            https://pub.ostera.org/<shortname>/, and it never changes.
 #            Names used by the site (about, assets, catalog, css, fonts,
-#            images, index, and js) are reserved.
+#            images, index, js, and reviews) are reserved.
 # state:     assigned   (approved for publication, not yet published)
 #            active     (at least one version published)
 #            retired    (abandoned before publication; number never reused)

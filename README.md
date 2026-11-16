@@ -14,11 +14,13 @@ This repository is not used to discuss, develop, or write documents. Documents a
 | `docs/<id>/v<version>/` | One published version, such as `docs/jcs/v1.0/`, with its files and `SHA512SUMS` |
 | `docs/<id>/corrections/` | Errata and corrigenda, when there are any |
 | `docs/catalog.json` | A machine readable list of every publication, served at https://pub.ostera.org/catalog.json |
+| `docs/reviews/` | Public reviews, served at https://pub.ostera.org/reviews/ |
+| `docs/reviews/<id>/<draft>/` | One public review, such as `docs/reviews/jcs/02/` for `draft-ts-jcs-02`, with its `review.yaml`, the draft, and `SHA512SUMS` |
 | `docs/index.md`, `docs/about.md`, and `docs/404.md` | The home, About These Documents, and not found pages |
 | `docs/_config.yml` | The site configuration |
 | `docs/CNAME` | The custom domain (pub.ostera.org). Do not delete it. |
 | `registry.yaml` | Every document number ever assigned, plus the document types and Working Groups |
-| `schemas/` | JSON Schemas for `registry.yaml` and `metadata.yaml` |
+| `schemas/` | JSON Schemas for `registry.yaml`, `metadata.yaml`, and `review.yaml` |
 | `tools/pubcheck/` | The tool that generates the site pages and validates the repository |
 | `AGENTS.md` | The rules for automated agents working in this repository |
 
@@ -26,9 +28,11 @@ The look and feel comes from the shared [OSTERA Pages Theme](https://github.com/
 
 ## How Publishing Works
 
-`registry.yaml` and each `metadata.yaml` are the only places where facts about a document are recorded. `pubcheck generate` writes everything the site shows from them: the page of each document and each version, `catalog.json`, the list of documents on the home page, and the table of document types on the About page. Those generated files are never edited by hand.
+`registry.yaml`, each `metadata.yaml`, and each `review.yaml` are the only places where facts about a document or a public review are recorded. `pubcheck generate` writes everything the site shows from them: the page of each document, each version, and each public review, `catalog.json`, the list of documents on the home page, the table of document types on the About page, and the list of public reviews. Those generated files are never edited by hand.
 
-Every change is made through a pull request, and the Validate check runs `pubcheck` on it. A published version never changes: corrections are published alongside it, and later releases get a new version.
+Every change is made through a pull request, and the Validate check runs `pubcheck` on it. A published version never changes: corrections are published alongside it, and later releases get a new version. An announced public review never changes either, except that it can be extended, withdrawn, or linked to the response to its comments; a revised draft gets a new review.
+
+Public reviews are the one place drafts appear here. They are listed only under https://pub.ostera.org/reviews/, never with the published documents or in `catalog.json`.
 
 ## Intellectual Property and License
 

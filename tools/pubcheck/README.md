@@ -10,21 +10,32 @@ repository root.
 
 ```
 go run -C tools/pubcheck . checksums docs/jcs/v1.0
+go run -C tools/pubcheck . checksums docs/reviews/jcs/02
 go run -C tools/pubcheck . generate
 go run -C tools/pubcheck . validate
 go run -C tools/pubcheck . validate -base origin/main
 ```
 
-* **checksums DIR...** writes `SHA512SUMS` for each directory, sorted by
-  filename in byte order.
-* **generate** writes the landing page (`index.md`) of each document and
-  each version, `docs/catalog.json`, and the generated sections of
-  `docs/index.md` and `docs/about.md`. Never edit those by hand.
+* **checksums DIR...** writes `SHA512SUMS` for each directory (a version,
+  a corrections folder, or a public review), sorted by filename in byte
+  order.
+* **generate** writes the landing page (`index.md`) of each document, each
+  version, each public review, and each review history, `docs/catalog.json`,
+  and the generated sections of `docs/index.md`, `docs/about.md`, and
+  `docs/reviews/index.md`. Never edit those by hand. It first checks
+  `registry.yaml`, every `metadata.yaml`, and every `review.yaml`, and
+  writes nothing if any of them is wrong.
 * **validate** checks `registry.yaml`, every `metadata.yaml`, every
-  published file and checksum, and every generated file.
-* **validate -base REF** also checks that nothing published since REF was
-  changed, removed, or renamed. It compares REF with the working tree, so
-  it catches problems before you commit.
+  `review.yaml`, every published file, review draft, and checksum, and
+  every generated file.
+* **validate -base REF** also checks that nothing published or announced
+  since REF was changed, removed, or renamed. It compares REF with the
+  working tree, so it catches problems before you commit.
+
+The generated pages never depend on today's date, so `validate` gives the
+same answer on any day. Whether a public review is upcoming, open, or
+closed is worked out in the reader's browser by `assets/js/ostera.js` in
+the [OSTERA Pages Theme](https://github.com/OSTERA-org/ostera-pages-theme).
 
 The rules these commands enforce are described in [AGENTS.md](../../AGENTS.md).
 

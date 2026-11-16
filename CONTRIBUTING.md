@@ -16,7 +16,7 @@ individuals can participate in those Working Groups by joining OSTERA.
 OSTERA encourages public comment on each draft work item prior to final
 approval. 
 
-Public reviews are announced at https://www.ostera.org/public-reviews, and
+Public reviews are announced at https://pub.ostera.org/reviews/, and
 comments are submitted via the Working Group's GitHub repository or via email
 at public-review@ostera.org.
 

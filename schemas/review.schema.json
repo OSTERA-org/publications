@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/OSTERA-org/publications/main/schemas/review.schema.json",
+  "title": "OSTERA Public Review",
+  "description": "One public review of one draft, stored as docs/reviews/<shortname>/<draft>/review.yaml, where <draft> is the draft number in two digits.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "shortname", "draft", "type", "version", "title",
+    "working_group", "opens", "closes", "formats", "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "shortname": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*$",
+      "description": "The work item's short name, the same as in the draft file name and in registry.yaml once a number is assigned."
+    },
+    "draft": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The draft number, without leading zeros. The folder and the file name use two digits: draft 1 is folder 01 and draft-ts-jcs-01.pdf."
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^[A-Z]{2,3}$",
+      "description": "The document type code in the draft name, defined in registry.yaml."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*))?$",
+      "description": "The version the draft is expected to become, such as \"1.0\". Always quoted."
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "working_group": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*$",
+      "description": "An id from registry.yaml. It is also the name of the Working Group's repository, where comments are filed as issues."
+    },
+    "opens": { "$ref": "#/$defs/date" },
+    "closes": {
+      "$ref": "#/$defs/date",
+      "description": "At least 30 days after opens (Working Methods, Article 29). It may later move to a later date, but never to an earlier one."
+    },
+    "formats": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9]+$" }
+    },
+    "summary": { "type": "string", "minLength": 1 },
+    "changes": {
+      "type": "string",
+      "description": "What changed since the previous public review, if there was one."
+    },
+    "withdrawn": {
+      "$ref": "#/$defs/date",
+      "description": "Added only if the Secretariat ends the review early."
+    },
+    "disposition": {
+      "type": "string",
+      "pattern": "^https://",
+      "description": "Added after the review closes: a link to the Working Group's response to the comments."
+    }
+  },
+  "$defs": {
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+    }
+  }
+}

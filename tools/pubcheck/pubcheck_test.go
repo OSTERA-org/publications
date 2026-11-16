@@ -89,6 +89,7 @@ func fixture(t *testing.T) string {
 	write(t, root, "registry.yaml", testRegistry)
 	write(t, root, "docs/index.md", "---\nlayout: home\n---\n\nIntroduction.\n\n"+beginMarker("documents")+"\n"+endMarker("documents")+"\n")
 	write(t, root, "docs/about.md", "---\nlayout: page\n---\n\n## Document Types\n\n"+beginMarker("document-types")+"\n"+endMarker("document-types")+"\n")
+	write(t, root, "docs/reviews/index.md", "---\nlayout: page\n---\n\n"+beginMarker("reviews")+"\n"+endMarker("reviews")+"\n")
 	write(t, root, "docs/_config.yml", "title: OSTERA Publications\n")
 	write(t, root, "docs/CNAME", "pub.ostera.org\n")
 	write(t, root, "docs/404.md", "---\nlayout: page\n---\n")

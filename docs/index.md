@@ -11,19 +11,12 @@ hero_buttons:
     style: secondary
 ---
 
+<!-- BEGIN GENERATED documents: pubcheck writes this section from registry.yaml and metadata.yaml; do not edit by hand -->
+
 ## Documents by Working Group
 
-{% for wg in site.data.working_groups -%}
-{%- assign docs = site.data.documents | where: "wg", wg.id -%}
-{%- if docs.size > 0 %}
-### [{{ wg.name }}](https://wg.ostera.org/{{ wg.id }}/)
+No documents have been published yet.
 
-| Document | Type | Latest Version |
-| --- | --- | --- |
-{% for doc in docs -%}
-| [{{ doc.title }}]({{ '/' | append: doc.id | append: '/' | relative_url }}){% if doc.number != "" %}<br>{{ doc.number }}{% endif %} | {{ doc.type }} | {% if doc.versions.size > 0 %}{% assign latest = doc.versions | first %}[Version {{ latest.version }}]({{ '/' | append: doc.id | append: '/v' | append: latest.version | append: '/' | relative_url }}) ({{ latest.date }}){% else %}Not yet published{% if doc.status != "" %} ({{ doc.status }}){% endif %}{% endif %} |
-{% endfor %}
-{%- endif %}
-{% endfor %}
+<!-- END GENERATED documents -->
 
-Document type codes are explained on [About These Documents]({{ '/about/' | relative_url }}).
+Document type codes are explained on [About These Documents](/about/). A machine readable list of every publication is available at [catalog.json](/catalog.json).

@@ -2,9 +2,12 @@
 # GitHub Pages builds this folder (branch main, folder /docs).
 # Do not set baseurl. This site is served from the root of pub.ostera.org.
 #
-# Published documents are prebuilt HTML in folders such as jcs/v1.0/.
-# Files without front matter are copied exactly as they are, so the
-# published documents are never changed by the build.
+# Each published document has a folder, such as jcs/, holding its
+# metadata.yaml and one folder per version, such as jcs/v1.0/. The
+# index.md landing pages, catalog.json, and the marked sections of
+# index.md and about.md are written by pubcheck (tools/pubcheck); do not
+# edit them by hand. Published files (PDF and the like) and SHA512SUMS
+# have no front matter, so Jekyll copies them exactly as they are.
 
 title: "OSTERA Publications"
 short_title: "Publications"

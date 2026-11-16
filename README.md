@@ -8,26 +8,27 @@ This repository is not used to discuss, develop, or write documents. Documents a
 
 | Path | Contents |
 | --- | --- |
-| `docs/<id>/v<version>/` | A published version of a document (for example `docs/jcs/v1.0/`), served at `https://pub.ostera.org/<id>/v<version>/` |
-| `docs/<id>/index.html` | The page that lists the published versions of a document |
-| `docs/_data/documents.yml` | The list of documents and their versions |
-| `docs/_data/working_groups.yml` | The working groups the documents are grouped under |
-| `docs/_data/document_types.yml` | The OSTERA document types |
-| `docs/_includes/` | Page parts used by this site |
+| `docs/` | The site, built by GitHub Pages and served at https://pub.ostera.org/ |
+| `docs/<id>/` | One published document, such as `docs/jcs/`, served at `https://pub.ostera.org/<id>/` |
+| `docs/<id>/metadata.yaml` | Everything about the document: title, Working Group, versions, and files |
+| `docs/<id>/v<version>/` | One published version, such as `docs/jcs/v1.0/`, with its files and `SHA512SUMS` |
+| `docs/<id>/corrections/` | Errata and corrigenda, when there are any |
+| `docs/catalog.json` | A machine readable list of every publication, served at https://pub.ostera.org/catalog.json |
 | `docs/index.md`, `docs/about.md`, and `docs/404.md` | The home, About These Documents, and not found pages |
+| `docs/_config.yml` | The site configuration |
 | `docs/CNAME` | The custom domain (pub.ostera.org). Do not delete it. |
+| `registry.yaml` | Every document number ever assigned, plus the document types and Working Groups |
+| `schemas/` | JSON Schemas for `registry.yaml` and `metadata.yaml` |
+| `tools/pubcheck/` | The tool that generates the site pages and validates the repository |
+| `AGENTS.md` | The rules for automated agents working in this repository |
 
 The look and feel comes from the shared [OSTERA Pages Theme](https://github.com/OSTERA-org/ostera-pages-theme).
 
-## Publishing a Version
+## How Publishing Works
 
-1. Put the rendered document in a new folder, `docs/<id>/v<version>/`, with `index.html` as its main file.
-2. Add the version to the top of the document's `versions` list in `docs/_data/documents.yml`.
-3. For a new document, also create `docs/<id>/index.html` (copy an existing one and change the `id`).
+`registry.yaml` and each `metadata.yaml` are the only places where facts about a document are recorded. `pubcheck generate` writes everything the site shows from them: the page of each document and each version, `catalog.json`, the list of documents on the home page, and the table of document types on the About page. Those generated files are never edited by hand.
 
-A published version folder never changes once it is merged. Corrections go in a new version folder or in an erratum.
-
-Files without front matter, such as the rendered HTML of a document, are copied to the site exactly as they are. Jekyll skips files and folders whose names start with `_` or `.`, so do not use such names inside a version folder.
+Every change is made through a pull request, and the Validate check runs `pubcheck` on it. A published version never changes: corrections are published alongside it, and later releases get a new version.
 
 ## Intellectual Property and License
 

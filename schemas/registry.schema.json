@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/OSTERA-org/Publications/main/schemas/registry.schema.json",
+  "title": "OSTERA Publications Registry",
+  "description": "The official list of registered OSTERA document numbers, type codes, number ranges, and Working Groups.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "ranges",
+    "types",
+    "working_groups",
+    "numbers"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "ranges": {
+      "type": "object",
+      "description": "Number ranges, each listing the type codes allowed in it.",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "first",
+          "types"
+        ],
+        "properties": {
+          "first": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "last": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "types": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/typeCode"
+            }
+          }
+        }
+      }
+    },
+    "types": {
+      "type": "object",
+      "description": "Type codes and their tracks.",
+      "propertyNames": {
+        "$ref": "#/$defs/typeCode"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "track"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "track": {
+            "enum": [
+              "standards",
+              "informative",
+              "parent",
+              "organizational"
+            ]
+          }
+        }
+      }
+    },
+    "working_groups": {
+      "type": "object",
+      "description": "Working Groups, keyed by id. A closed group stays listed.",
+      "propertyNames": {
+        "$ref": "#/$defs/id"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "state"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "enum": [
+              "active",
+              "closed"
+            ]
+          }
+        }
+      }
+    },
+    "numbers": {
+      "type": "array",
+      "description": "Every number ever assigned, exactly once.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "number",
+          "shortname",
+          "state",
+          "assigned"
+        ],
+        "properties": {
+          "number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "shortname": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "not": {
+                  "enum": [
+                    "about",
+                    "assets",
+                    "catalog",
+                    "css",
+                    "fonts",
+                    "images",
+                    "index",
+                    "js"
+                  ]
+                }
+              }
+            ],
+            "description": "Also the folder name under docs/ and a top level path on pub.ostera.org. Names used by the site are reserved."
+          },
+          "state": {
+            "enum": [
+              "assigned",
+              "active",
+              "retired"
+            ]
+          },
+          "assigned": {
+            "$ref": "#/$defs/date"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "typeCode": {
+      "type": "string",
+      "pattern": "^[A-Z]{2,3}$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*$"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+# OSTERA Publications Registry
+#
+# This file contains the official list of registered document numbers.
+# Every number ever assigned appears here exactly once, and a number is
+# never reused, even if its work item is abandoned.
+#
+# This file only allocates numbers. Everything else about a document
+# (title, type, versions, authors) lives in that document's metadata.yaml.
+# The CI checks that every metadata.yaml matches an entry here, and that
+# every active entry here has a metadata.yaml.
+
+schema_version: 1
+
+# Number ranges. Organizational documents use the reserved low range.
+ranges:
+  organizational:
+    first: 1
+    last: 999
+    types: [PD]
+  technical:
+    first: 1000
+    types: [STD, TS, SUP, TN, TP, TR]
+
+# Type Codes
+# track: "standards"      subject to the patent licensing obligations in the
+#                         IPR and Copyright Policy
+#        "informative"    not subject to those obligations
+#        "parent"         follows the track of the document it supplements
+#        "organizational" an Association policy, outside the work item process
+types:
+  PD:  { name: Policy/Process Document, track: organizational }
+  STD: { name: Standard,                track: standards }
+  TS:  { name: Technical Specification, track: standards }
+  SUP: { name: Supplement,              track: parent }
+  TN:  { name: Technical Note,          track: informative }
+  TP:  { name: Technical Paper,         track: informative }
+  TR:  { name: Technical Report,        track: informative }
+
+# Working Groups. Documents refer to a group by its id.
+# state: active (the group is chartered and working)
+#        closed (the group has closed; it stays listed so older documents
+#                still resolve)
+working_groups:
+  jss:
+    name: JSON Signature Scheme (JSS)
+    state: active
+
+# Document numbers
+# number:    a plain integer with no leading zeros (1, not 0001). Zero
+#            padding is only used in filenames.
+# shortname: lowercase letters and digits only, starting with a letter.
+#            It is the folder name under docs/ and the address
+#            https://pub.ostera.org/<shortname>/, and it never changes.
+#            Names used by the site (about, assets, catalog, css, fonts,
+#            images, index, and js) are reserved.
+# state:     assigned   (approved for publication, not yet published)
+#            active     (at least one version published)
+#            retired    (abandoned before publication; number never reused)
+# assigned:  yyyy-mm-dd (the date the number was allocated)
+#
+# The next number in a range is the highest number ever assigned in that
+# range, including retired numbers, plus one.
+#
+numbers: []

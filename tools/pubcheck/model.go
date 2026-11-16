@@ -194,7 +194,7 @@ const docsDir = "docs"
 // repository it is built from.
 const (
 	siteURL = "https://pub.ostera.org"
-	repoURL = "https://github.com/OSTERA-org/Publications"
+	repoURL = "https://github.com/OSTERA-org/publications"
 )
 
 // reservedShortnames cannot be used as short names, because each short

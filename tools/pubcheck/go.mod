@@ -1,4 +1,4 @@
-module github.com/OSTERA-org/Publications/tools/pubcheck
+module github.com/OSTERA-org/publications/tools/pubcheck
 
 go 1.24
 

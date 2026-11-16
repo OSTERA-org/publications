@@ -18,7 +18,7 @@ plugins:
   - jekyll-remote-theme
 
 ostera_section: pub
-source_url: https://github.com/OSTERA-org/Publications
+source_url: https://github.com/OSTERA-org/publications
 
 navigation:
   - title: Home

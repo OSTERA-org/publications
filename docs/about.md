@@ -43,10 +43,10 @@ OSTERA encourages public comment on each draft before final approval. Public rev
 
 ## Reporting an Error
 
-If you find an error in a published document, please [open an issue](https://github.com/OSTERA-org/Publications/issues) or send an email to [secretariat@ostera.org](mailto:secretariat@ostera.org). Please include the document identifier and version (for example OSTERA TS 1000, Version 1.0), along with the section, and a description of the problem.
+If you find an error in a published document, please [open an issue](https://github.com/OSTERA-org/publications/issues) or send an email to [secretariat@ostera.org](mailto:secretariat@ostera.org). Please include the document identifier and version (for example OSTERA TS 1000, Version 1.0), along with the section, and a description of the problem.
 
 ## Intellectual Property and License
 
-OSTERA owns the copyright in each published document. The terms under which you may use the documents are in [LICENSE.md](https://github.com/OSTERA-org/Publications/blob/main/LICENSE.md), and a summary of how intellectual property rights apply is in [IPR.md](https://github.com/OSTERA-org/Publications/blob/main/IPR.md). The [OSTERA IPR and Copyright Policy](https://ostera.org/policies/) is the authoritative text.
+OSTERA owns the copyright in each published document. The terms under which you may use the documents are in [LICENSE.md](https://github.com/OSTERA-org/publications/blob/main/LICENSE.md), and a summary of how intellectual property rights apply is in [IPR.md](https://github.com/OSTERA-org/publications/blob/main/IPR.md). The [OSTERA IPR and Copyright Policy](https://ostera.org/policies/) is the authoritative text.
 
 To disclose patents or other IPR that may cover a document, follow the instructions at [ostera.org/ipr](https://ostera.org/ipr/).

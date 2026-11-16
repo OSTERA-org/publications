@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/OSTERA-org/Publications/main/schemas/registry.schema.json",
+  "$id": "https://raw.githubusercontent.com/OSTERA-org/publications/main/schemas/registry.schema.json",
   "title": "OSTERA Publications Registry",
   "description": "The official list of registered OSTERA document numbers, type codes, number ranges, and Working Groups.",
   "type": "object",

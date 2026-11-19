@@ -5,9 +5,11 @@
 
 PUBCHECK := go run -C tools/pubcheck .
 
-# The branch that validate compares against, so it can check that nothing
-# published or announced was changed. Set BASE= (empty) to skip that check.
-BASE ?= origin/main
+# The remote that holds the published repository on GitHub, and the branch
+# that validate compares against, so it can check that nothing published or
+# announced was changed. Set BASE= (empty) to skip that check.
+REMOTE ?= origin
+BASE ?= $(REMOTE)/main
 
 .DEFAULT_GOAL := help
 .PHONY: help generate checksums validate test
@@ -25,7 +27,7 @@ checksums: ## Write SHA512SUMS in DIR, for example: make checksums DIR=docs/jcs/
 
 validate: ## Check the repository, comparing against BASE (default origin/main)
 ifneq ($(BASE),)
-	@git fetch --quiet origin
+	@git fetch --quiet $(REMOTE)
 	@$(PUBCHECK) validate -base $(BASE)
 else
 	@$(PUBCHECK) validate

@@ -680,7 +680,7 @@ func workItemPage(s *site, short string) string {
 	var b strings.Builder
 	w := func(format string, args ...any) { fmt.Fprintf(&b, format, args...) }
 
-	w("%s", wideFrontMatter(last.Title, "Public review history"))
+	w("%s", frontMatter(last.Title, "Public review history"))
 	w("* **Working group:** [%s](https://wg.ostera.org/%s/)\n", wgName(s, last.WorkingGroup), last.WorkingGroup)
 	w("* **Latest draft reviewed:** [%s](%s/)\n", draftLabel(last), reviewPath(last))
 	if d := documentFor(s, short); d != nil {

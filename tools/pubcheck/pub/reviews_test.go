@@ -371,9 +371,6 @@ func TestReviewsJSON(t *testing.T) {
 	}
 	write(t, root, "docs/reviews/reviews.json", "{}\n")
 	expectProblem(t, validate(root), "docs/reviews/reviews.json")
-	if !strings.Contains(readText(t, root, "docs/reviews/jcs/index.md"), "width: wide") {
-		t.Error("the review history page should use the wide layout")
-	}
 }
 
 func TestUpdate(t *testing.T) {

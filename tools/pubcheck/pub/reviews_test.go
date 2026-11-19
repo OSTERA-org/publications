@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 OSTERA
 
-package main
+package pub
 
 import (
 	"os"
@@ -24,7 +24,7 @@ summary: >
   A canonical form for JSON data.
 `
 
-const reviewDir = "docs/reviews/jcs/01"
+const reviewDir = "docs/reviews/jcs/v1.0/01"
 
 // addReview adds a complete, generated review to root.
 func addReview(t *testing.T, root string) {
@@ -68,7 +68,7 @@ func TestReviewValid(t *testing.T) {
 		}
 	}
 	list := readText(t, root, "docs/reviews/index.md")
-	for _, want := range []string{"[draft-ts-jcs-01](/reviews/jcs/01/)", `data-opens="2026-10-01"`} {
+	for _, want := range []string{"[draft-ts-jcs-01](/reviews/jcs/v1.0/01/)", `data-opens="2026-10-01"`} {
 		if !strings.Contains(list, want) {
 			t.Errorf("reviews/index.md does not contain %q", want)
 		}
@@ -76,9 +76,9 @@ func TestReviewValid(t *testing.T) {
 	page := readText(t, root, reviewDir+"/index.md")
 	for _, want := range []string{
 		`title: "Public Review of draft-ts-jcs-01"`,
-		"[English PDF](/reviews/jcs/01/draft-ts-jcs-01.pdf)",
+		"[English PDF](/reviews/jcs/v1.0/01/draft-ts-jcs-01.pdf)",
 		"https://github.com/OSTERA-org-Working-Groups/jss/issues/new/choose",
-		"mailto:public-review@ostera.org?subject=draft-ts-jcs-01",
+		"mailto:public-review@ostera.org?subject=draft-ts-jcs-01%20for%20version%201.0",
 		"Published document:** [JSON Canonicalization Scheme (JCS)](/jcs/)",
 		`<a href="/jcs/v1.0/">Version 1.0</a>, published 2026-11-24`,
 	} {
@@ -98,11 +98,11 @@ func TestReviewValid(t *testing.T) {
 func TestReviewBeforeNumber(t *testing.T) {
 	// A work item can be reviewed before it has a number or a document.
 	root := fixture(t)
-	write(t, root, "docs/reviews/jsf/02/review.yaml", strings.NewReplacer("shortname: jcs", "shortname: jsf", "draft: 1", "draft: 2").Replace(testReview))
-	write(t, root, "docs/reviews/jsf/02/draft-ts-jsf-02.pdf", "%PDF draft\n")
-	write(t, root, "docs/reviews/jsf/02/draft-ts-jsf-02.md", "# draft\n")
-	edit(t, root, "docs/reviews/jsf/02/review.yaml", "formats: [pdf]", "formats: [pdf, md]")
-	mustSums(t, root, "docs/reviews/jsf/02")
+	write(t, root, "docs/reviews/jsf/v1.0/02/review.yaml", strings.NewReplacer("shortname: jcs", "shortname: jsf", "draft: 1", "draft: 2").Replace(testReview))
+	write(t, root, "docs/reviews/jsf/v1.0/02/draft-ts-jsf-02.pdf", "%PDF draft\n")
+	write(t, root, "docs/reviews/jsf/v1.0/02/draft-ts-jsf-02.md", "# draft\n")
+	edit(t, root, "docs/reviews/jsf/v1.0/02/review.yaml", "formats: [pdf]", "formats: [pdf, md]")
+	mustSums(t, root, "docs/reviews/jsf/v1.0/02")
 	mustGenerate(t, root)
 	if p := validate(root); p.Len() != 0 {
 		t.Fatalf("expected no problems, got %+v", p.list)
@@ -127,6 +127,12 @@ func TestReviewBroken(t *testing.T) {
 		{"wrong folder", func(t *testing.T, root string) {
 			edit(t, root, reviewDir+"/review.yaml", "draft: 1", "draft: 3")
 		}, "draft 3 belongs in a folder named 03, not 01"},
+		{"wrong version folder", func(t *testing.T, root string) {
+			edit(t, root, reviewDir+"/review.yaml", `version: "1.0"`, `version: "1.1"`)
+		}, "version 1.1 belongs in a folder named v1.1, not v1.0"},
+		{"draft directly under the short name", func(t *testing.T, root string) {
+			write(t, root, "docs/reviews/jcs/02/review.yaml", testReview)
+		}, "does not belong in a review history folder; reviews go in v<version>/<draft>/"},
 		{"unknown working group", func(t *testing.T, root string) {
 			edit(t, root, reviewDir+"/review.yaml", "working_group: jss", "working_group: crgm")
 		}, `working_group "crgm" is not defined in registry.yaml`},
@@ -149,7 +155,7 @@ func TestReviewBroken(t *testing.T) {
 			write(t, root, reviewDir+"/draft-ts-jcs-01.pdf", "%PDF changed\n")
 		}, "SHA512SUMS"},
 		{"no review.yaml", func(t *testing.T, root string) {
-			write(t, root, "docs/reviews/jcs/02/draft-ts-jcs-02.pdf", "x")
+			write(t, root, "docs/reviews/jcs/v1.0/02/draft-ts-jcs-02.pdf", "x")
 		}, "review directory has no review.yaml"},
 		{"stray file", func(t *testing.T, root string) {
 			write(t, root, "docs/reviews/notes.md", "x")
@@ -206,9 +212,9 @@ func TestReviewHistory(t *testing.T) {
 			edit(t, root, reviewDir+"/review.yaml", "formats: [pdf]", "formats: [pdf]\ndisposition: https://github.com/OSTERA-org-Working-Groups/jss/issues/7")
 		}, ""},
 		{"a new review", func(t *testing.T, root string) {
-			write(t, root, "docs/reviews/jcs/02/review.yaml", strings.NewReplacer("draft: 1", "draft: 2", "2026-10-01", "2026-12-01", "2026-10-31", "2026-12-31").Replace(testReview)+"changes: >\n  Fixed the examples.\n")
-			write(t, root, "docs/reviews/jcs/02/draft-ts-jcs-02.pdf", "%PDF draft 2\n")
-			mustSums(t, root, "docs/reviews/jcs/02")
+			write(t, root, "docs/reviews/jcs/v1.0/02/review.yaml", strings.NewReplacer("draft: 1", "draft: 2", "2026-10-01", "2026-12-01", "2026-10-31", "2026-12-31").Replace(testReview)+"changes: >\n  Fixed the examples.\n")
+			write(t, root, "docs/reviews/jcs/v1.0/02/draft-ts-jcs-02.pdf", "%PDF draft 2\n")
+			mustSums(t, root, "docs/reviews/jcs/v1.0/02")
 		}, ""},
 		{"shorten", func(t *testing.T, root string) {
 			edit(t, root, reviewDir+"/review.yaml", "closes: 2026-10-31", "closes: 2026-10-15")
@@ -255,6 +261,29 @@ func TestReviewHistory(t *testing.T) {
 			}
 			expectProblem(t, p, c.want)
 		})
+	}
+}
+
+func TestSameDraftNumberInTwoVersions(t *testing.T) {
+	// A Working Group may start its draft numbers again for a new version.
+	root := fixture(t)
+	addReview(t, root)
+	dir := "docs/reviews/jcs/v1.1/01"
+	write(t, root, dir+"/review.yaml", strings.NewReplacer(`version: "1.0"`, `version: "1.1"`, "2026-10-01", "2027-02-01", "2026-10-31", "2027-03-03").Replace(testReview))
+	write(t, root, dir+"/draft-ts-jcs-01.pdf", "%PDF draft for 1.1\n")
+	mustSums(t, root, dir)
+	mustGenerate(t, root)
+	if p := validate(root); p.Len() != 0 {
+		t.Fatalf("expected no problems, got %+v", p.list)
+	}
+	list := readText(t, root, "docs/reviews/index.md")
+	for _, want := range []string{"(/reviews/jcs/v1.0/01/)", "(/reviews/jcs/v1.1/01/)"} {
+		if !strings.Contains(list, want) {
+			t.Errorf("reviews/index.md does not link %s", want)
+		}
+	}
+	if !strings.Contains(readText(t, root, "docs/reviews/jcs/index.md"), "<h3>Version 1.1</h3>") {
+		t.Error("the review history should show one progress bar per version")
 	}
 }
 

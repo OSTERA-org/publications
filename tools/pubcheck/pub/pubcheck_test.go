@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 OSTERA
 
-package main
+package pub
 
 import (
 	"encoding/json"
@@ -460,7 +460,7 @@ func TestAddFormatLater(t *testing.T) {
 
 func TestSchemaEnums(t *testing.T) {
 	load := func(name string) map[string]any {
-		data, err := os.ReadFile(filepath.Join("..", "..", "schemas", name))
+		data, err := os.ReadFile(filepath.Join("..", "..", "..", "schemas", name))
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 OSTERA
 
-// Command pubcheck validates and maintains the OSTERA Publications
-// repository.
+// Command pubcheck validates and maintains the OSTERA publications
+// repository. The work is done by the package in pub/; this file only
+// reads the command line.
 //
 //	pubcheck [-root DIR] validate [-base REF]
 //	pubcheck [-root DIR] generate
@@ -19,18 +20,21 @@
 // docs/about.md, and docs/reviews/index.md.
 //
 // checksums writes SHA512SUMS for each named directory: a version, a
-// corrections folder, or a public review.
+// corrections folder, or a public review. Relative directories are taken
+// from the repository root.
 //
 // Without -root, pubcheck looks for registry.yaml in the current directory
-// and its parents.
+// and its parents. The usual way to run it is through the Makefile in the
+// repository root, for example make validate.
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/OSTERA-org/publications/tools/pubcheck/pub"
 )
 
 func main() {
@@ -48,7 +52,7 @@ func run(args []string) int {
 		usage()
 		return 2
 	}
-	root, err := findRoot(*rootFlag)
+	root, err := pub.FindRoot(*rootFlag)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "pubcheck:", err)
 		return 2
@@ -62,17 +66,21 @@ func run(args []string) int {
 		if err := vf.Parse(rest); err != nil {
 			return 2
 		}
-		p := validate(root)
-		if *base != "" {
-			if err := checkHistory(root, *base, p); err != nil {
-				fmt.Fprintln(os.Stderr, "pubcheck:", err)
-				return 2
-			}
+		p, err := pub.Validate(root, *base)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "pubcheck:", err)
+			return 2
 		}
-		return report(p, "repository is valid")
+		if p.Len() > 0 {
+			p.Print(os.Stdout)
+			fmt.Fprintf(os.Stdout, "\n%d problem(s) found\n", p.Len())
+			return 1
+		}
+		fmt.Println("repository is valid")
+		return 0
 
 	case "generate":
-		p, err := generate(root)
+		p, err := pub.Generate(root)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "pubcheck:", err)
 			return 2
@@ -91,59 +99,19 @@ func run(args []string) int {
 			return 2
 		}
 		for _, dir := range rest {
-			// Relative directories are relative to the repository root, so
-			// the command works the same from any working directory.
 			if !filepath.IsAbs(dir) {
 				dir = filepath.Join(root, dir)
 			}
-			if err := writeSums(dir); err != nil {
+			if err := pub.WriteChecksums(dir); err != nil {
 				fmt.Fprintln(os.Stderr, "pubcheck:", err)
 				return 1
 			}
-			fmt.Printf("wrote %s\n", filepath.Join(dir, sumsFile))
+			fmt.Printf("wrote %s\n", filepath.Join(dir, pub.SumsFile))
 		}
 		return 0
 	}
 	usage()
 	return 2
-}
-
-func report(p *Problems, ok string) int {
-	if p.Len() == 0 {
-		fmt.Println(ok)
-		return 0
-	}
-	p.Print(os.Stdout)
-	fmt.Fprintf(os.Stdout, "\n%d problem(s) found\n", p.Len())
-	return 1
-}
-
-func findRoot(flagValue string) (string, error) {
-	if flagValue != "" {
-		if _, err := os.Stat(filepath.Join(flagValue, "registry.yaml")); err != nil {
-			return "", fmt.Errorf("%s does not contain registry.yaml", flagValue)
-		}
-		return flagValue, nil
-	}
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "registry.yaml")); err == nil {
-			return dir, nil
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			return "", errors.New("cannot find registry.yaml in this directory or any parent; use -root")
-		}
-		dir = parent
-	}
-}
-
-func readFile(root, rel string) ([]byte, bool) {
-	data, err := os.ReadFile(filepath.Join(root, rel))
-	return data, err == nil
 }
 
 func usage() {

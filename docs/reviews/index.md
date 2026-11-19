@@ -4,7 +4,7 @@ title: Public Reviews
 lead: "Drafts that are open for public comment, and the record of every past public review."
 ---
 
-Before a work item can be approved as an OSTERA document, it goes through a 14 day Working Group last call and at least one public review of at least 30 days ([Working Methods](https://ostera.org/policies/), Article 29). A work item may be reviewed more than once, for example after significant changes. Each review is named after the draft it covers, such as `draft-ts-jcs-01`.
+Before a work item can be approved as an OSTERA document, it goes through a 14 day Working Group last call and at least one public review of at least 30 days ([Working Methods](https://ostera.org/policies/), Article 29). A work item may be reviewed more than once, for example after significant changes. Each review is named after the draft it covers and the version that draft is expected to become, such as `draft-ts-jcs-01` for version 1.0.
 
 Anyone may comment during a public review, whether or not they are an OSTERA Member. Each review page explains how: open an issue in the Working Group's repository, or send an email to [public-review@ostera.org](mailto:public-review@ostera.org). Anything you submit is a contribution under the [OSTERA IPR and Copyright Policy](https://ostera.org/policies/).
 

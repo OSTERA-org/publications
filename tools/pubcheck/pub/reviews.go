@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 OSTERA
 
-package main
+package pub
 
 import (
 	"fmt"
@@ -14,12 +14,16 @@ import (
 	"time"
 )
 
-// Public reviews live in docs/reviews/<shortname>/<draft>/, where <draft>
-// is the draft number in two digits, the same number the draft file
-// carries. The review of draft-ts-jcs-01.pdf is in docs/reviews/jcs/01/
-// and is served at https://pub.ostera.org/reviews/jcs/01/. Each review
-// folder holds review.yaml, the frozen copy of the draft in one file per
-// format, SHA512SUMS, and its generated index.md.
+// Public reviews live in docs/reviews/<shortname>/v<version>/<draft>/,
+// where <version> is the version the draft is expected to become and
+// <draft> is the draft number in two digits, the same number the draft
+// file carries. The review of draft-ts-jcs-01.pdf for version 1.0 is in
+// docs/reviews/jcs/v1.0/01/ and is served at
+// https://pub.ostera.org/reviews/jcs/v1.0/01/. The version is part of the
+// path because a Working Group may start its draft numbers again for each
+// version, as its 03-Work-Items/<shortname>/v<version>/ folders allow.
+// Each review folder holds review.yaml, the frozen copy of the draft in
+// one file per format, SHA512SUMS, and its generated index.md.
 const (
 	reviewsDir   = docsDir + "/reviews"
 	reviewsIndex = reviewsDir + "/index.md"
@@ -87,7 +91,7 @@ func reviewsIndexDir(short string) string { return reviewsDir + "/" + short }
 func reviewsPath(short string) string { return "/reviews/" + short }
 
 func reviewPath(r *Review, parts ...string) string {
-	return "/" + strings.Join(append([]string{"reviews", r.Shortname, draftDir(r.Draft)}, parts...), "/")
+	return "/" + strings.Join(append([]string{"reviews", r.Shortname, versionDir(r.Version), draftDir(r.Draft)}, parts...), "/")
 }
 
 func parseReview(path string, data []byte, p *Problems) *Review {
@@ -99,9 +103,10 @@ func parseReview(path string, data []byte, p *Problems) *Review {
 	return &r
 }
 
-// loadReviews reads every docs/reviews/<shortname>/<draft>/review.yaml,
-// oldest draft first within each short name. Misplaced files are reported
-// by checkReviews.
+// loadReviews reads every
+// docs/reviews/<shortname>/v<version>/<draft>/review.yaml, oldest version
+// and draft first within each short name. Misplaced files are reported by
+// checkReviews.
 func loadReviews(root string, p *Problems) []ReviewDir {
 	shorts, err := os.ReadDir(filepath.Join(root, reviewsDir))
 	if err != nil {
@@ -112,22 +117,31 @@ func loadReviews(root string, p *Problems) []ReviewDir {
 		if !s.IsDir() {
 			continue
 		}
-		drafts, err := os.ReadDir(filepath.Join(root, reviewsDir, s.Name()))
+		versions, err := os.ReadDir(filepath.Join(root, reviewsDir, s.Name()))
 		if err != nil {
 			continue
 		}
-		for _, d := range drafts {
-			if !d.IsDir() {
+		for _, v := range versions {
+			if !v.IsDir() {
 				continue
 			}
-			rel := reviewsDir + "/" + s.Name() + "/" + d.Name()
-			data, err := os.ReadFile(filepath.Join(root, rel, reviewFile))
+			drafts, err := os.ReadDir(filepath.Join(root, reviewsDir, s.Name(), v.Name()))
 			if err != nil {
-				p.Addf(rel, "review directory has no %s", reviewFile)
 				continue
 			}
-			if r := parseReview(rel+"/"+reviewFile, data, p); r != nil {
-				list = append(list, ReviewDir{Dir: rel, R: r})
+			for _, d := range drafts {
+				if !d.IsDir() {
+					continue
+				}
+				rel := reviewsDir + "/" + s.Name() + "/" + v.Name() + "/" + d.Name()
+				data, err := os.ReadFile(filepath.Join(root, rel, reviewFile))
+				if err != nil {
+					p.Addf(rel, "review directory has no %s", reviewFile)
+					continue
+				}
+				if r := parseReview(rel+"/"+reviewFile, data, p); r != nil {
+					list = append(list, ReviewDir{Dir: rel, R: r})
+				}
 			}
 		}
 	}
@@ -137,10 +151,14 @@ func loadReviews(root string, p *Problems) []ReviewDir {
 
 func sortReviews(list []ReviewDir) {
 	sort.Slice(list, func(i, j int) bool {
-		if list[i].R.Shortname != list[j].R.Shortname {
-			return list[i].R.Shortname < list[j].R.Shortname
+		a, b := list[i].R, list[j].R
+		if a.Shortname != b.Shortname {
+			return a.Shortname < b.Shortname
 		}
-		return list[i].R.Draft < list[j].R.Draft
+		if a.Version != b.Version {
+			return versionLess(a.Version, b.Version)
+		}
+		return a.Draft < b.Draft
 	})
 }
 
@@ -200,7 +218,7 @@ func checkReviews(root string, s *site, files bool, p *Problems) {
 func checkReview(s *site, rv ReviewDir, p *Problems) {
 	r, path := rv.R, rv.Dir+"/"+reviewFile
 	parts := strings.Split(rv.Dir, "/")
-	folderShort, folderDraft := parts[len(parts)-2], parts[len(parts)-1]
+	folderShort, folderVersion, folderDraft := parts[len(parts)-3], parts[len(parts)-2], parts[len(parts)-1]
 
 	if r.SchemaVersion != 1 {
 		p.Addf(path, "schema_version must be 1, not %d", r.SchemaVersion)
@@ -223,6 +241,8 @@ func checkReview(s *site, rv ReviewDir, p *Problems) {
 	}
 	if !versionRE.MatchString(r.Version) {
 		p.Addf(path, "version %q must be the version the draft is expected to become, such as \"1.0\"", r.Version)
+	} else if versionDir(r.Version) != folderVersion {
+		p.Addf(path, "version %s belongs in a folder named %s, not %s", r.Version, versionDir(r.Version), folderVersion)
 	}
 	if strings.TrimSpace(r.Title) == "" {
 		p.Addf(path, "title is required")
@@ -297,17 +317,26 @@ func checkReviewTree(root string, s *site, p *Problems) {
 		default:
 			entries, _ := os.ReadDir(filepath.Join(root, rel))
 			count := 0
-			for _, f := range entries {
-				frel := rel + "/" + f.Name()
+			for _, v := range entries {
+				vrel := rel + "/" + v.Name()
 				switch {
-				case !f.IsDir() && f.Name() == pageFile:
-				case f.IsDir() && byDir[frel] != nil:
-					count++
-					checkArtifactDir(root, frel, expectedDraftFiles(byDir[frel]), []string{pageFile, reviewFile}, p)
-				case f.IsDir():
-					// Reported by loadReviews (no review.yaml) or by a parse error.
+				case !v.IsDir() && v.Name() == pageFile:
+				case !v.IsDir() || !strings.HasPrefix(v.Name(), "v"):
+					p.Addf(vrel, "does not belong in a review history folder; reviews go in v<version>/<draft>/")
 				default:
-					p.Addf(frel, "does not belong in a review history folder")
+					drafts, _ := os.ReadDir(filepath.Join(root, vrel))
+					for _, f := range drafts {
+						frel := vrel + "/" + f.Name()
+						switch {
+						case f.IsDir() && byDir[frel] != nil:
+							count++
+							checkArtifactDir(root, frel, expectedDraftFiles(byDir[frel]), []string{pageFile, reviewFile}, p)
+						case f.IsDir():
+							// Reported by loadReviews (no review.yaml) or by a parse error.
+						default:
+							p.Addf(frel, "does not belong in a version folder of a review history; reviews go in <draft>/")
+						}
+					}
 				}
 			}
 			if count == 0 {
@@ -331,10 +360,10 @@ func checkReviewTree(root string, s *site, p *Problems) {
 // by compareReviews) and its generated index.md.
 func checkReviewPath(root, mb string, c change, p *Problems) {
 	parts := strings.Split(c.path, "/")
-	if len(parts) != 5 {
+	if len(parts) != 6 {
 		return
 	}
-	dir, name := strings.Join(parts[:4], "/"), parts[4]
+	dir, name := strings.Join(parts[:5], "/"), parts[5]
 	if !gitExists(root, mb, dir+"/"+reviewFile) {
 		return // a new review; nothing in it is announced yet
 	}
@@ -354,7 +383,7 @@ func compareReviews(root, mb string, p *Problems) error {
 		return err
 	}
 	for _, path := range strings.Split(strings.TrimSpace(out), "\n") {
-		if !strings.HasSuffix(path, "/"+reviewFile) || strings.Count(path, "/") != 4 {
+		if !strings.HasSuffix(path, "/"+reviewFile) || strings.Count(path, "/") != 5 {
 			continue
 		}
 		data, _ := gitShow(root, mb, path)
@@ -500,7 +529,7 @@ func reviewPage(s *site, rv ReviewDir) string {
 	var b strings.Builder
 	w := func(format string, args ...any) { fmt.Fprintf(&b, format, args...) }
 
-	w("%s", frontMatter("Public Review of "+draftLabel(r), r.Title))
+	w("%s", frontMatter("Public Review of "+draftLabel(r), r.Title+", Version "+r.Version))
 	w("<p class=\"review-banner\"><strong>Status:</strong> %s</p>\n\n", statusSpan(r))
 	w("%s\n\n", strings.TrimSpace(r.Summary))
 
@@ -544,8 +573,8 @@ func reviewPage(s *site, rv ReviewDir) string {
 	w("\n## How to Comment\n\n")
 	w("Anyone may comment, whether or not they are an OSTERA Member. Comments are accepted from the opening date through the closing date. Either:\n\n")
 	w("* open an issue in the [%s repository](%s/%s/issues/new/choose), or\n", wgName(s, r.WorkingGroup), wgOrgURL, r.WorkingGroup)
-	w("* send an email to [%s](mailto:%s?subject=%s).\n\n", reviewEmail, reviewEmail, draftLabel(r))
-	w("Please include the draft name (%s) and the section your comment is about. Anything you submit is a contribution under the [OSTERA IPR and Copyright Policy](https://ostera.org/policies/). By submitting it, you agree to the terms of that policy (Article 3). Do not submit anything confidential (Article 4).\n", draftLabel(r))
+	w("* send an email to [%s](mailto:%s?subject=%s%%20for%%20version%%20%s).\n\n", reviewEmail, reviewEmail, draftLabel(r), r.Version)
+	w("Please include the draft name and version (%s for version %s) and the section your comment is about. Anything you submit is a contribution under the [OSTERA IPR and Copyright Policy](https://ostera.org/policies/). By submitting it, you agree to the terms of that policy (Article 3). Do not submit anything confidential (Article 4).\n", draftLabel(r), r.Version)
 
 	w("\n## Outcome\n\n")
 	if r.Disposition != "" {
@@ -605,10 +634,10 @@ func reviewsSection(s *site) string {
 		}
 		return draftLabel(list[i].R) < draftLabel(list[j].R)
 	})
-	w("| Draft | Title | Working Group | Status |\n| --- | --- | --- | --- |\n")
+	w("| Draft | Title | Version | Working Group | Status |\n| --- | --- | --- | --- | --- |\n")
 	for _, rv := range list {
 		r := rv.R
-		w("| [%s](%s/) | %s | %s | %s |\n", draftLabel(r), reviewPath(r), cell(r.Title), cell(wgName(s, r.WorkingGroup)), statusSpan(r))
+		w("| [%s](%s/) | %s | %s | %s | %s |\n", draftLabel(r), reviewPath(r), cell(r.Title), r.Version, cell(wgName(s, r.WorkingGroup)), statusSpan(r))
 	}
 	return b.String()
 }

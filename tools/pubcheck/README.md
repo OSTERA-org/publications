@@ -3,18 +3,36 @@
 pubcheck validates and maintains the OSTERA Publications repository. The CI
 runs it on every pull request and every push to main.
 
+## Layout
+
+| File | Contents |
+| --- | --- |
+| `main.go` | The command: reads the command line and calls the package |
+| `pub/` | The package that does the work: `pub.Validate`, `pub.Generate`, `pub.WriteChecksums`, and `pub.FindRoot`, with the tests |
+| `go.mod`, `go.sum` | The Go module, `github.com/OSTERA-org/publications/tools/pubcheck` |
+
 ## Commands
 
-Run these from the repository root. Directories are always relative to the
-repository root.
+The usual way to run pubcheck is through the Makefile in the repository
+root, from the repository root:
 
 ```
-go run -C tools/pubcheck . checksums docs/jcs/v1.0
-go run -C tools/pubcheck . checksums docs/reviews/jcs/02
-go run -C tools/pubcheck . generate
-go run -C tools/pubcheck . validate
-go run -C tools/pubcheck . validate -base origin/main
+make generate
+make checksums DIR=docs/jcs/v1.0
+make checksums DIR=docs/reviews/jcs/v1.0/02
+make validate
+make test
 ```
+
+`make validate` fetches `origin` and compares against `origin/main`; use
+`make validate BASE=` to skip the comparison, or `BASE=<ref>` to compare
+against something else.
+
+The Makefile runs `go run -C tools/pubcheck . <command>`. From this folder,
+`go run main.go <command>` does the same. Directories given to `checksums`
+are always relative to the repository root.
+
+The commands are:
 
 * **checksums DIR...** writes `SHA512SUMS` for each directory (a version,
   a corrections folder, or a public review), sorted by filename in byte

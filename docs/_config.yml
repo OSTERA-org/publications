@@ -7,7 +7,7 @@
 # index.md landing pages, catalog.json, and the marked sections of
 # index.md, about.md, and reviews/index.md are written by pubcheck
 # (tools/pubcheck); do not edit them by hand. Public reviews are in
-# reviews/<shortname>/<draft>/, each with a review.yaml and its own
+# reviews/<shortname>/v<version>/<draft>/, each with a review.yaml and its own
 # generated index.md. Published files (PDF and the like) and SHA512SUMS
 # have no front matter, so Jekyll copies them exactly as they are.
 

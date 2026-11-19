@@ -15,13 +15,14 @@ This repository is not used to discuss, develop, or write documents. Documents a
 | `docs/<id>/corrections/` | Errata and corrigenda, when there are any |
 | `docs/catalog.json` | A machine readable list of every publication, served at https://pub.ostera.org/catalog.json |
 | `docs/reviews/` | Public reviews, served at https://pub.ostera.org/reviews/ |
-| `docs/reviews/<id>/<draft>/` | One public review, such as `docs/reviews/jcs/02/` for `draft-ts-jcs-02`, with its `review.yaml`, the draft, and `SHA512SUMS` |
+| `docs/reviews/<id>/v<version>/<draft>/` | One public review, such as `docs/reviews/jcs/v1.0/02/` for `draft-ts-jcs-02` of version 1.0, with its `review.yaml`, the draft, and `SHA512SUMS` |
 | `docs/index.md`, `docs/about.md`, and `docs/404.md` | The home, About These Documents, and not found pages |
 | `docs/_config.yml` | The site configuration |
 | `docs/CNAME` | The custom domain (pub.ostera.org). Do not delete it. |
 | `registry.yaml` | Every document number ever assigned, plus the document types and Working Groups |
 | `schemas/` | JSON Schemas for `registry.yaml`, `metadata.yaml`, and `review.yaml` |
 | `tools/pubcheck/` | The tool that generates the site pages and validates the repository |
+| `Makefile` | The commands for running pubcheck: `make generate`, `make checksums DIR=<folder>`, `make validate`, and `make test` |
 | `AGENTS.md` | The rules for automated agents working in this repository |
 
 The look and feel comes from the shared [OSTERA Pages Theme](https://github.com/OSTERA-org/ostera-pages-theme).

@@ -4,6 +4,7 @@
 package pub
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -34,6 +35,12 @@ const (
 	// is at least this many days after its opening date. Other reviews of
 	// the same work item may be shorter or longer.
 	fullReviewDays = 30
+
+	// reviewsJSONFile is the machine readable list of every public review.
+	// The Working Group sites read it in the browser (assets/js/ostera.js
+	// in the theme) to show the reviews of each work item, so they never
+	// need to be updated by hand.
+	reviewsJSONFile = reviewsDir + "/reviews.json"
 
 	reviewEmail = "public-review@ostera.org"
 	wgOrgURL    = "https://github.com/OSTERA-org-Working-Groups"
@@ -242,7 +249,7 @@ func checkFullReview(s *site, p *Problems) {
 				}
 			}
 			if any && !full {
-				p.Addf(d.Dir+"/metadata.yaml", "version %s cannot be published: none of the public reviews of its drafts lasted at least %d days (Working Methods, Article 29)", v.Version, fullReviewDays)
+				p.Addf(d.Dir+"/metadata.yaml", "version %s needs a public review of at least %d days (Working Methods, Article 29), and none of the recorded reviews of its drafts lasted that long", v.Version, fullReviewDays)
 			}
 		}
 	}
@@ -344,7 +351,7 @@ func checkReviewTree(root string, s *site, p *Problems) {
 	for _, e := range top {
 		rel := reviewsDir + "/" + e.Name()
 		switch {
-		case !e.IsDir() && e.Name() == pageFile:
+		case !e.IsDir() && (e.Name() == pageFile || e.Name() == "reviews.json"):
 		case !e.IsDir():
 			p.Addf(rel, "does not belong in docs/reviews")
 		default:
@@ -388,9 +395,11 @@ func checkReviewTree(root string, s *site, p *Problems) {
 
 // ---------- history ----------
 
-// checkReviewPath enforces that a review folder never changes once it is
-// in the base branch, except for its review.yaml (checked field by field
-// by compareReviews) and its generated index.md.
+// checkReviewPath enforces that the files of a review never change once it
+// is in the base branch. Only these changes are allowed: its review.yaml
+// (checked field by field by compareReviews), its generated index.md, a
+// draft file for a format newly appended to formats, and the lines that
+// file adds to the end of SHA512SUMS.
 func checkReviewPath(root, mb string, c change, p *Problems) {
 	parts := strings.Split(c.path, "/")
 	if len(parts) != 6 {
@@ -400,16 +409,48 @@ func checkReviewPath(root, mb string, c change, p *Problems) {
 	if !gitExists(root, mb, dir+"/"+reviewFile) {
 		return // a new review; nothing in it is announced yet
 	}
-	if name == pageFile || (name == reviewFile && c.status == "M") {
-		return
+	switch {
+	case name == pageFile || (name == reviewFile && c.status == "M"):
+	case name == sumsFile && c.status == "M":
+		checkSumsAppendOnly(root, mb, c.path, p)
+	case name != sumsFile && c.status == "A" && isNewReviewFormatFile(root, mb, dir, name):
+	case c.status == "A":
+		p.Addf(c.path, "cannot be added to a public review that has been announced; only the file for a format newly added to the end of its formats list may be added")
+	default:
+		p.Addf(c.path, "is part of a public review that has been announced, so it cannot be changed or deleted; publish the new draft as a new review instead")
 	}
-	p.Addf(c.path, "is part of a public review that has been announced, so it cannot be added, changed, or deleted; publish the new draft as a new review instead")
+}
+
+// isNewReviewFormatFile reports whether name is the draft file for a format
+// that is in the current formats list of the review in dir but was not in
+// it at the base commit.
+func isNewReviewFormatFile(root, mb, dir, name string) bool {
+	data, _ := gitShow(root, mb, dir+"/"+reviewFile)
+	old := parseReview(dir+"/"+reviewFile, data, &Problems{})
+	cur, ok := readFile(root, dir+"/"+reviewFile)
+	if old == nil || !ok {
+		return false
+	}
+	n := parseReview(dir+"/"+reviewFile, cur, &Problems{})
+	if n == nil {
+		return false
+	}
+	for _, f := range n.Formats {
+		if !contains(old.Formats, f) && draftName(n, f) == name {
+			return true
+		}
+	}
+	return false
 }
 
 // compareReviews checks every review.yaml in the base branch against the
-// working tree. A review is never removed. Its entry only changes by
-// moving the closing date later, by recording the date it was withdrawn,
-// or by adding the link to the disposition of comments.
+// working tree. A review is never removed, and what identifies its draft
+// never changes: shortname, draft, type, version, working_group, and
+// schema_version. formats can only grow, by appending a new format, as for
+// a published version. Everything else can be corrected or changed: the
+// dates (to postpone, shorten, or extend the review), title, summary,
+// changes, withdrawn, and disposition. The draft files themselves are
+// locked by checkReviewPath.
 func compareReviews(root, mb string, p *Problems) error {
 	out, err := git(root, "ls-tree", "-r", "--name-only", mb, "--", reviewsDir)
 	if err != nil {
@@ -433,21 +474,30 @@ func compareReviews(root, mb string, p *Problems) error {
 		if n == nil {
 			continue
 		}
-		if n.Closes < old.Closes {
-			p.Addf(path, "closes moved from %s to %s; a review can be extended, but never shortened", old.Closes, n.Closes)
+		var changed []string
+		if n.SchemaVersion != old.SchemaVersion {
+			changed = append(changed, "schema_version")
 		}
-		if old.Withdrawn != "" && n.Withdrawn != old.Withdrawn {
-			p.Addf(path, "withdrawn was %s and cannot change", old.Withdrawn)
+		if n.Shortname != old.Shortname {
+			changed = append(changed, "shortname")
 		}
-		if old.Disposition != "" && n.Disposition != old.Disposition {
-			p.Addf(path, "disposition was %s and cannot change", old.Disposition)
+		if n.Draft != old.Draft {
+			changed = append(changed, "draft")
 		}
-		a, b := *old, *n
-		a.Closes, b.Closes = "", ""
-		a.Withdrawn, b.Withdrawn = "", ""
-		a.Disposition, b.Disposition = "", ""
-		if !reflect.DeepEqual(a, b) {
-			p.Addf(path, "was edited; once a review is announced, only closes (to a later date), withdrawn, and disposition may change")
+		if n.Type != old.Type {
+			changed = append(changed, "type")
+		}
+		if n.Version != old.Version {
+			changed = append(changed, "version")
+		}
+		if n.WorkingGroup != old.WorkingGroup {
+			changed = append(changed, "working_group")
+		}
+		if len(changed) > 0 {
+			p.Addf(path, "%s cannot change once a review is announced, because it identifies the draft; only the dates, title, summary, changes, withdrawn, and disposition can be changed, and formats can be added. A different draft gets a new review", strings.Join(changed, ", "))
+		}
+		if len(n.Formats) < len(old.Formats) || !reflect.DeepEqual(n.Formats[:len(old.Formats)], old.Formats) {
+			p.Addf(path, "formats was %v; once a review is announced, formats can only be added to the end of the list, and none can be removed or reordered", old.Formats)
 		}
 	}
 	return nil
@@ -601,7 +651,7 @@ func reviewPage(s *site, rv ReviewDir) string {
 		w("* [%s](%s): `%s`\n", fileLabel("en", f), reviewPath(r, name), name)
 	}
 	w("* [%s](%s): checksums for the files above\n", sumsFile, reviewPath(r, sumsFile))
-	w("\nThis draft is a work in progress. It has not been approved by OSTERA and must not be cited as an OSTERA publication. The files of a review never change; a revised draft gets a new review.\n")
+	w("\nThis draft is a work in progress. It has not been approved by OSTERA and must not be cited as an OSTERA publication. A file in a review never changes, although the same draft may later be added in another format; a revised draft gets a new review.\n")
 
 	w("\n## How to Comment\n\n")
 	w("Anyone may comment, whether or not they are an OSTERA Member. Comments are accepted from the opening date through the closing date. Either:\n\n")
@@ -630,7 +680,7 @@ func workItemPage(s *site, short string) string {
 	var b strings.Builder
 	w := func(format string, args ...any) { fmt.Fprintf(&b, format, args...) }
 
-	w("%s", frontMatter(last.Title, "Public review history"))
+	w("%s", wideFrontMatter(last.Title, "Public review history"))
 	w("* **Working group:** [%s](https://wg.ostera.org/%s/)\n", wgName(s, last.WorkingGroup), last.WorkingGroup)
 	w("* **Latest draft reviewed:** [%s](%s/)\n", draftLabel(last), reviewPath(last))
 	if d := documentFor(s, short); d != nil {
@@ -673,4 +723,64 @@ func reviewsSection(s *site) string {
 		w("| [%s](%s/) | %s | %s | %s | %s |\n", draftLabel(r), reviewPath(r), cell(r.Title), r.Version, cell(wgName(s, r.WorkingGroup)), statusSpan(r))
 	}
 	return b.String()
+}
+
+// ---------- reviews.json ----------
+
+type reviewsList struct {
+	SchemaVersion int           `json:"schema_version"`
+	Site          string        `json:"site"`
+	Reviews       []reviewEntry `json:"reviews"`
+}
+
+type reviewEntry struct {
+	Shortname        string   `json:"shortname"`
+	Draft            int      `json:"draft"`
+	Name             string   `json:"name"`
+	Version          string   `json:"version"`
+	Type             string   `json:"type"`
+	Title            string   `json:"title"`
+	WorkingGroup     string   `json:"working_group"`
+	WorkingGroupName string   `json:"working_group_name"`
+	Opens            string   `json:"opens"`
+	Closes           string   `json:"closes"`
+	Withdrawn        string   `json:"withdrawn,omitempty"`
+	Disposition      string   `json:"disposition,omitempty"`
+	URL              string   `json:"url"`
+	HistoryURL       string   `json:"history_url"`
+	Files            []string `json:"files"`
+	Checksums        string   `json:"checksums"`
+	DocumentURL      string   `json:"document_url,omitempty"`
+}
+
+// reviewsJSON is docs/reviews/reviews.json: every public review, in the
+// same order as the folders (short name, version, draft). It never says
+// whether a review is open; readers work that out from opens, closes, and
+// withdrawn, so the file never depends on today's date.
+func reviewsJSON(s *site) ([]byte, error) {
+	list := reviewsList{SchemaVersion: 1, Site: siteURL + "/", Reviews: []reviewEntry{}}
+	for _, rv := range s.reviews {
+		r := rv.R
+		e := reviewEntry{
+			Shortname: r.Shortname, Draft: r.Draft, Name: draftLabel(r), Version: r.Version,
+			Type: r.Type, Title: r.Title, WorkingGroup: r.WorkingGroup, WorkingGroupName: wgName(s, r.WorkingGroup),
+			Opens: r.Opens, Closes: r.Closes, Withdrawn: r.Withdrawn, Disposition: r.Disposition,
+			URL:        siteURL + reviewPath(r) + "/",
+			HistoryURL: siteURL + reviewsPath(r.Shortname) + "/",
+			Files:      []string{},
+			Checksums:  siteURL + reviewPath(r, sumsFile),
+		}
+		for _, f := range r.Formats {
+			e.Files = append(e.Files, siteURL+reviewPath(r, draftName(r, f)))
+		}
+		if d := documentFor(s, r.Shortname); d != nil {
+			e.DocumentURL = docURL(r.Shortname)
+		}
+		list.Reviews = append(list.Reviews, e)
+	}
+	data, err := json.MarshalIndent(list, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	return append(data, '\n'), nil
 }

@@ -123,10 +123,10 @@ func TestReviewBroken(t *testing.T) {
 		}, "closes must be after opens"},
 		{"published without a 30 day review", func(t *testing.T, root string) {
 			edit(t, root, reviewDir+"/review.yaml", "closes: 2026-10-31", "closes: 2026-10-16")
-		}, "version 1.0 cannot be published: none of the public reviews of its drafts lasted at least 30 days (Working Methods, Article 29)"},
+		}, "version 1.0 needs a public review of at least 30 days (Working Methods, Article 29), and none of the recorded reviews of its drafts lasted that long"},
 		{"the 30 day review was withdrawn", func(t *testing.T, root string) {
 			edit(t, root, reviewDir+"/review.yaml", "formats: [pdf]", "formats: [pdf]\nwithdrawn: 2026-10-10")
-		}, "none of the public reviews of its drafts lasted at least 30 days"},
+		}, "none of the recorded reviews of its drafts lasted that long"},
 		{"leading zero draft", func(t *testing.T, root string) {
 			edit(t, root, reviewDir+"/review.yaml", "draft: 1", "draft: 01")
 		}, "numbers must not have leading zeros"},
@@ -222,12 +222,27 @@ func TestReviewHistory(t *testing.T) {
 			write(t, root, "docs/reviews/jcs/v1.0/02/draft-ts-jcs-02.pdf", "%PDF draft 2\n")
 			mustSums(t, root, "docs/reviews/jcs/v1.0/02")
 		}, ""},
+		{"postpone", func(t *testing.T, root string) {
+			edit(t, root, "docs/reviews/jsf/v1.0/01/review.yaml", "opens: 2026-10-01", "opens: 2026-10-08")
+			edit(t, root, "docs/reviews/jsf/v1.0/01/review.yaml", "closes: 2026-10-31", "closes: 2026-11-07")
+		}, ""},
 		{"shorten", func(t *testing.T, root string) {
-			edit(t, root, reviewDir+"/review.yaml", "closes: 2026-10-31", "closes: 2026-10-15")
-		}, "a review can be extended, but never shortened"},
-		{"edit the summary", func(t *testing.T, root string) {
+			edit(t, root, "docs/reviews/jsf/v1.0/01/review.yaml", "closes: 2026-10-31", "closes: 2026-10-15")
+		}, ""},
+		{"correct the title and summary", func(t *testing.T, root string) {
 			edit(t, root, reviewDir+"/review.yaml", "A canonical form", "A canonical format")
-		}, "only closes (to a later date), withdrawn, and disposition may change"},
+			edit(t, root, reviewDir+"/review.yaml", "title: JSON Canonicalization Scheme (JCS)", "title: The JSON Canonicalization Scheme (JCS)")
+		}, ""},
+		{"add and remove changes", func(t *testing.T, root string) {
+			edit(t, root, reviewDir+"/review.yaml", "formats: [pdf]", "formats: [pdf]\nchanges: >\n  Fixed the examples.")
+		}, ""},
+		{"change the type", func(t *testing.T, root string) {
+			edit(t, root, reviewDir+"/review.yaml", "type: TS", "type: TN")
+		}, "type cannot change once a review is announced, because it identifies the draft"},
+		{"change the working group", func(t *testing.T, root string) {
+			edit(t, root, "registry.yaml", "working_groups:\n", "working_groups:\n  crgm:\n    name: Cyber Risk Governance Metrics (CRGM)\n    state: active\n")
+			edit(t, root, "docs/reviews/jsf/v1.0/01/review.yaml", "working_group: jss", "working_group: crgm")
+		}, "working_group cannot change once a review is announced"},
 		{"replace the draft", func(t *testing.T, root string) {
 			write(t, root, reviewDir+"/draft-ts-jcs-01.pdf", "%PDF replaced\n")
 			mustSums(t, root, reviewDir)
@@ -236,7 +251,17 @@ func TestReviewHistory(t *testing.T) {
 			edit(t, root, reviewDir+"/review.yaml", "formats: [pdf]", "formats: [pdf, md]")
 			write(t, root, reviewDir+"/draft-ts-jcs-01.md", "# draft\n")
 			mustSums(t, root, reviewDir)
-		}, "is part of a public review that has been announced"},
+		}, ""},
+		{"add a file without adding its format", func(t *testing.T, root string) {
+			write(t, root, reviewDir+"/draft-ts-jcs-01.md", "# draft\n")
+			mustSums(t, root, reviewDir)
+		}, "cannot be added to a public review that has been announced; only the file for a format newly added"},
+		{"remove a format", func(t *testing.T, root string) {
+			edit(t, root, reviewDir+"/review.yaml", "formats: [pdf]", "formats: [md]")
+			os.Remove(filepath.Join(root, reviewDir, "draft-ts-jcs-01.pdf"))
+			write(t, root, reviewDir+"/draft-ts-jcs-01.md", "# draft\n")
+			mustSums(t, root, reviewDir)
+		}, "formats can only be added to the end of the list"},
 		{"remove the review", func(t *testing.T, root string) {
 			os.RemoveAll(filepath.Join(root, reviewDir))
 		}, "a public review is part of the record and is never removed"},
@@ -322,6 +347,72 @@ func TestShortReviews(t *testing.T) {
 	if p := validate(root); p.Len() != 0 {
 		t.Fatalf("a short review of an unpublished work item should be valid, got %+v", p.list)
 	}
+}
+
+func TestReviewsJSON(t *testing.T) {
+	root := fixture(t)
+	addReview(t, root)
+	text := readText(t, root, "docs/reviews/reviews.json")
+	for _, want := range []string{
+		`"name": "draft-ts-jcs-01"`,
+		`"url": "https://pub.ostera.org/reviews/jcs/v1.0/01/"`,
+		`"history_url": "https://pub.ostera.org/reviews/jcs/"`,
+		`"working_group_name": "JSON Signature Scheme (JSS)"`,
+		`"opens": "2026-10-01"`,
+		`"files": [` + "\n" + `        "https://pub.ostera.org/reviews/jcs/v1.0/01/draft-ts-jcs-01.pdf"`,
+		`"document_url": "https://pub.ostera.org/jcs/"`,
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("reviews.json does not contain %s", want)
+		}
+	}
+	if strings.Contains(text, "withdrawn") {
+		t.Error("reviews.json should leave out withdrawn when it is empty")
+	}
+	write(t, root, "docs/reviews/reviews.json", "{}\n")
+	expectProblem(t, validate(root), "docs/reviews/reviews.json")
+	if !strings.Contains(readText(t, root, "docs/reviews/jcs/index.md"), "width: wide") {
+		t.Error("the review history page should use the wide layout")
+	}
+}
+
+func TestUpdate(t *testing.T) {
+	root := fixture(t)
+	dir := "docs/reviews/jcs/v1.0/01"
+	write(t, root, dir+"/review.yaml", testReview)
+	write(t, root, dir+"/draft-ts-jcs-01.pdf", "%PDF draft\n")
+	written, p, err := Update(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Len() != 0 || len(written) != 1 || written[0] != dir {
+		t.Fatalf("expected only %s to be written, got %v and %+v", dir, written, p.list)
+	}
+	if v := validate(root); v.Len() != 0 {
+		t.Fatalf("expected a valid repository after update, got %+v", v.list)
+	}
+
+	// Nothing to do the second time.
+	written, _, _ = Update(root)
+	if len(written) != 0 {
+		t.Fatalf("expected nothing to be written, got %v", written)
+	}
+
+	// A new format in a published version adds a line to its SHA512SUMS.
+	edit(t, root, "docs/jcs/metadata.yaml", "formats: [pdf, md]", "formats: [pdf, md, txt]")
+	write(t, root, "docs/jcs/v1.0/OSTERA-TS-1000-2026-JCS-v1.0-en.txt", "JCS\n")
+	written, p, _ = Update(root)
+	if p.Len() != 0 || len(written) != 1 || written[0] != "docs/jcs/v1.0" {
+		t.Fatalf("expected docs/jcs/v1.0 to be written, got %v and %+v", written, p.list)
+	}
+	if !strings.Contains(readText(t, root, "docs/jcs/v1.0/SHA512SUMS"), "OSTERA-TS-1000-2026-JCS-v1.0-en.txt") {
+		t.Fatal("the new file is not in SHA512SUMS")
+	}
+
+	// A misnamed file stops update before anything is generated.
+	write(t, root, dir+"/draft-ts-jcs-1.pdf", "x")
+	_, p, _ = Update(root)
+	expectProblem(t, p, "draft-ts-jcs-1.pdf: does not match the filename grammar or the draft naming rule")
 }
 
 func TestVersionLess(t *testing.T) {

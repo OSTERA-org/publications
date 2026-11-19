@@ -1,5 +1,6 @@
 ---
 layout: page
+width: wide
 title: "JSON Canonicalization Scheme (JCS)"
 lead: "Public review history"
 ---

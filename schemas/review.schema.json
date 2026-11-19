@@ -40,9 +40,10 @@
     "opens": { "$ref": "#/$defs/date" },
     "closes": {
       "$ref": "#/$defs/date",
-      "description": "After opens. At least one review of each version's drafts must last 30 days or more, closing at least 30 days after it opens, before that version is published (Working Methods, Article 29). closes may later move to a later date, but never to an earlier one."
+      "description": "After opens. At least one review of each version's drafts must last 30 days or more, closing at least 30 days after it opens, before that version is published (Working Methods, Article 29). Both dates may be changed after the review is announced, for example to postpone or extend it."
     },
     "formats": {
+      "description": "The formats of the draft files. After the review is announced, new formats may be added to the end of the list, but none removed or reordered.",
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
@@ -55,12 +56,12 @@
     },
     "withdrawn": {
       "$ref": "#/$defs/date",
-      "description": "Added only if the Secretariat ends the review early."
+      "description": "Added only if the Secretariat ends the review early. It can be corrected or removed later."
     },
     "disposition": {
       "type": "string",
       "pattern": "^https://",
-      "description": "Added after the review closes: a link to the Working Group's response to the comments."
+      "description": "Added after the review closes: a link to the Working Group's response to the comments. It can be corrected later."
     }
   },
   "$defs": {

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "site": "https://pub.ostera.org/",
+  "reviews": [
+    {
+      "shortname": "jcs",
+      "draft": 1,
+      "name": "draft-ts-jcs-01",
+      "version": "1.0",
+      "type": "TS",
+      "title": "JSON Canonicalization Scheme (JCS)",
+      "working_group": "jss",
+      "working_group_name": "JSON Signature Scheme (JSS)",
+      "opens": "2026-11-24",
+      "closes": "2026-12-26",
+      "url": "https://pub.ostera.org/reviews/jcs/v1.0/01/",
+      "history_url": "https://pub.ostera.org/reviews/jcs/",
+      "files": [
+        "https://pub.ostera.org/reviews/jcs/v1.0/01/draft-ts-jcs-01.pdf"
+      ],
+      "checksums": "https://pub.ostera.org/reviews/jcs/v1.0/01/SHA512SUMS"
+    }
+  ]
+}

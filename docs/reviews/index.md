@@ -1,5 +1,6 @@
 ---
 layout: page
+width: wide
 title: Public Reviews
 lead: "Drafts that are open for public comment, and the record of every past public review."
 ---

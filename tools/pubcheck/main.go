@@ -5,9 +5,14 @@
 // repository. The work is done by the package in pub/; this file only
 // reads the command line.
 //
+//	pubcheck [-root DIR] update
 //	pubcheck [-root DIR] validate [-base REF]
 //	pubcheck [-root DIR] generate
 //	pubcheck [-root DIR] checksums DIR...
+//
+// update writes SHA512SUMS in every version, corrections, and review folder
+// where it is missing or out of date, and then does what generate does. It
+// is the one command the publishing procedures use before validate.
 //
 // validate checks registry.yaml, every metadata.yaml, every review.yaml,
 // every published file, every review draft, every checksum, and every
@@ -79,6 +84,26 @@ func run(args []string) int {
 		fmt.Println("repository is valid")
 		return 0
 
+	case "update":
+		written, p, err := pub.Update(root)
+		for _, dir := range written {
+			fmt.Printf("wrote %s\n", filepath.Join(dir, pub.SumsFile))
+		}
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "pubcheck:", err)
+			return 2
+		}
+		if p.Len() > 0 {
+			p.Print(os.Stdout)
+			fmt.Fprintf(os.Stdout, "\nnothing generated: fix the %d problem(s) above first\n", p.Len())
+			return 1
+		}
+		if len(written) == 0 {
+			fmt.Println("all checksums were already up to date")
+		}
+		fmt.Println("generated the landing pages, the public review pages, catalog.json, reviews.json, and the sections of index.md, about.md, and reviews/index.md")
+		return 0
+
 	case "generate":
 		p, err := pub.Generate(root)
 		if err != nil {
@@ -90,7 +115,7 @@ func run(args []string) int {
 			fmt.Fprintf(os.Stdout, "\nnothing generated: fix the %d problem(s) above first\n", p.Len())
 			return 1
 		}
-		fmt.Println("generated the landing pages, the public review pages, catalog.json, and the sections of index.md, about.md, and reviews/index.md")
+		fmt.Println("generated the landing pages, the public review pages, catalog.json, reviews.json, and the sections of index.md, about.md, and reviews/index.md")
 		return 0
 
 	case "checksums":
@@ -116,6 +141,7 @@ func run(args []string) int {
 
 func usage() {
 	fmt.Fprint(os.Stderr, `usage:
+  pubcheck [-root DIR] update
   pubcheck [-root DIR] validate [-base REF]
   pubcheck [-root DIR] generate
   pubcheck [-root DIR] checksums DIR...

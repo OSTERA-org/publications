@@ -26,10 +26,6 @@ summary: >
   Defines a canonical representation of JSON data, so that hashing and
   signing produce consistent results.
 
-# Leave this out for the first review of a work item.
-changes: >
-  Addresses the comments from the review of draft-ts-jcs-01.
-
 # Added later by Procedure 2, only when needed:
 # withdrawn: 2026-12-10
 # disposition: https://github.com/OSTERA-org-Working-Groups/jss/issues/12

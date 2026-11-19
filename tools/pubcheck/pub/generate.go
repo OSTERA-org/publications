@@ -87,6 +87,11 @@ func generatedFiles(s *site) (map[string][]byte, error) {
 		return nil, err
 	}
 	out[catalogFile] = cat
+	list, err := reviewsJSON(s)
+	if err != nil {
+		return nil, err
+	}
+	out[reviewsJSONFile] = list
 	return out, nil
 }
 
@@ -313,6 +318,12 @@ func quoted(s string) string {
 
 func frontMatter(title, lead string) string {
 	return "---\nlayout: page\ntitle: " + quoted(title) + "\nlead: " + quoted(lead) + "\n---\n" + generatedNote + "\n\n"
+}
+
+// wideFrontMatter is frontMatter for a page whose tables need the full
+// content width (the theme's page layout option width: wide).
+func wideFrontMatter(title, lead string) string {
+	return "---\nlayout: page\nwidth: wide\ntitle: " + quoted(title) + "\nlead: " + quoted(lead) + "\n---\n" + generatedNote + "\n\n"
 }
 
 // path returns the site path of a document folder or of a file under it.

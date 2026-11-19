@@ -1,7 +1,8 @@
 # Makefile for the OSTERA publications repository.
 #
 # Run these from the repository root. "make" alone lists the targets.
-# Every target runs pubcheck (tools/pubcheck); see tools/pubcheck/README.md.
+# Every target runs pubcheck (tools/pubcheck). README-Makefile.md explains
+# what each target does, and when and why to use it.
 
 PUBCHECK := go run -C tools/pubcheck .
 
@@ -16,11 +17,14 @@ REMOTE ?= $(shell git remote -v 2>/dev/null | awk -v repo="$(REPO)" '$$3 == "(fe
 BASE ?= $(REMOTE)/main
 
 .DEFAULT_GOAL := help
-.PHONY: help generate checksums validate test
+.PHONY: help update validate generate checksums test
 
 help: ## List the targets
 	@echo "usage: make <target>"
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN { FS = ":.*## " } { printf "  make %-10s %s\n", $$1, $$2 }'
+
+update: ## Write any missing or outdated SHA512SUMS, then generate (use after every change)
+	@$(PUBCHECK) update
 
 generate: ## Write the generated pages, catalog.json, and generated sections
 	@$(PUBCHECK) generate

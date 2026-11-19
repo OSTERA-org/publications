@@ -25,16 +25,12 @@ Defines a canonical representation of JSON data, so that hashing and signing pro
 <li class="stages__step stages__step--todo"><strong>Approved and Published</strong><br>Not yet</li>
 </ol>
 
-## Changes Since the Previous Review
-
-Addresses the comments from the review of draft-ts-jcs-01.
-
 ## Files
 
 * [English PDF](/reviews/jcs/v1.0/01/draft-ts-jcs-01.pdf): `draft-ts-jcs-01.pdf`
 * [SHA512SUMS](/reviews/jcs/v1.0/01/SHA512SUMS): checksums for the files above
 
-This draft is a work in progress. It has not been approved by OSTERA and must not be cited as an OSTERA publication. The files of a review never change; a revised draft gets a new review.
+This draft is a work in progress. It has not been approved by OSTERA and must not be cited as an OSTERA publication. A file in a review never changes, although the same draft may later be added in another format; a revised draft gets a new review.
 
 ## How to Comment
 

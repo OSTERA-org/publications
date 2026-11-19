@@ -5,10 +5,14 @@
 
 PUBCHECK := go run -C tools/pubcheck .
 
-# The remote that holds the published repository on GitHub, and the branch
-# that validate compares against, so it can check that nothing published or
-# announced was changed. Set BASE= (empty) to skip that check.
-REMOTE ?= origin
+# REPO is the published repository on GitHub. REMOTE is the name your git
+# copy uses for it, found by looking for REPO in "git remote -v", whatever
+# the remote is called. BASE is the branch that validate compares against,
+# so it can check that nothing published or announced was changed. Set
+# REMOTE=<name> to choose the remote yourself, or BASE= (empty) to skip the
+# comparison.
+REPO := github.com/OSTERA-org/publications
+REMOTE ?= $(shell git remote -v 2>/dev/null | awk -v repo="$(REPO)" '$$3 == "(fetch)" { u = tolower($$2); sub(/\.git$$/, "", u); sub(/github\.com:/, "github.com/", u); if (u ~ ("[/:@]" tolower(repo) "$$") || u ~ ("^" tolower(repo) "$$")) { print $$1; exit } }')
 BASE ?= $(REMOTE)/main
 
 .DEFAULT_GOAL := help
@@ -25,8 +29,10 @@ checksums: ## Write SHA512SUMS in DIR, for example: make checksums DIR=docs/jcs/
 	@test -n "$(DIR)" || { echo "usage: make checksums DIR=<folder>, for example DIR=docs/jcs/v1.0"; exit 2; }
 	@$(PUBCHECK) checksums $(DIR)
 
-validate: ## Check the repository, comparing against BASE (default origin/main)
+validate: ## Check the repository, comparing against the main branch on GitHub
 ifneq ($(BASE),)
+	@test -n "$(REMOTE)" || { echo "No git remote points to https://$(REPO)."; echo "Add one with: git remote add origin https://$(REPO).git"; exit 2; }
+	@echo "Comparing against $(BASE)"
 	@git fetch --quiet $(REMOTE)
 	@$(PUBCHECK) validate -base $(BASE)
 else

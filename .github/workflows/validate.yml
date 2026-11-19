@@ -1,0 +1,44 @@
+# Validates the repository on every pull request and every push to main.
+# The branch ruleset on main requires the "validate" check to pass. It runs
+# the same make targets as a person does (see the Makefile).
+
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository with full history
+        uses: actions/checkout@v4
+        with:
+          # The immutability checks compare against earlier commits.
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/pubcheck/go.mod
+          cache-dependency-path: tools/pubcheck/go.sum
+
+      - name: Test pubcheck
+        run: make test
+
+      - name: Validate the repository
+        env:
+          # On a pull request, compare against the target branch. On a push,
+          # compare against the commit before the push. A new branch has no
+          # earlier commit, so the immutability checks are skipped.
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+        run: |
+          if [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            BASE=""
+          fi
+          make validate BASE="$BASE"

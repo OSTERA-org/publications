@@ -118,9 +118,15 @@ func TestReviewBroken(t *testing.T) {
 		change func(t *testing.T, root string)
 		want   string
 	}{
-		{"too short", func(t *testing.T, root string) {
-			edit(t, root, reviewDir+"/review.yaml", "closes: 2026-10-31", "closes: 2026-10-30")
-		}, "closes must be at least 30 days after opens (Working Methods, Article 29); the earliest allowed is 2026-10-31"},
+		{"closes before opens", func(t *testing.T, root string) {
+			edit(t, root, reviewDir+"/review.yaml", "closes: 2026-10-31", "closes: 2026-09-30")
+		}, "closes must be after opens"},
+		{"published without a 30 day review", func(t *testing.T, root string) {
+			edit(t, root, reviewDir+"/review.yaml", "closes: 2026-10-31", "closes: 2026-10-16")
+		}, "version 1.0 cannot be published: none of the public reviews of its drafts lasted at least 30 days (Working Methods, Article 29)"},
+		{"the 30 day review was withdrawn", func(t *testing.T, root string) {
+			edit(t, root, reviewDir+"/review.yaml", "formats: [pdf]", "formats: [pdf]\nwithdrawn: 2026-10-10")
+		}, "none of the public reviews of its drafts lasted at least 30 days"},
 		{"leading zero draft", func(t *testing.T, root string) {
 			edit(t, root, reviewDir+"/review.yaml", "draft: 1", "draft: 01")
 		}, "numbers must not have leading zeros"},
@@ -185,12 +191,12 @@ func TestGenerateChecksReviewsFirst(t *testing.T) {
 	root := fixture(t)
 	addReview(t, root)
 	before := readText(t, root, reviewDir+"/index.md")
-	edit(t, root, reviewDir+"/review.yaml", "closes: 2026-10-31", "closes: 2026-10-02")
+	edit(t, root, reviewDir+"/review.yaml", "closes: 2026-10-31", "closes: 2026-09-30")
 	p, err := generate(root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectProblem(t, p, "closes must be at least 30 days after opens")
+	expectProblem(t, p, "closes must be after opens")
 	if readText(t, root, reviewDir+"/index.md") != before {
 		t.Fatal("generate wrote files although review.yaml was wrong")
 	}
@@ -206,7 +212,7 @@ func TestReviewHistory(t *testing.T) {
 			edit(t, root, reviewDir+"/review.yaml", "closes: 2026-10-31", "closes: 2026-11-15")
 		}, ""},
 		{"withdraw", func(t *testing.T, root string) {
-			edit(t, root, reviewDir+"/review.yaml", "formats: [pdf]", "formats: [pdf]\nwithdrawn: 2026-10-10")
+			edit(t, root, "docs/reviews/jsf/v1.0/01/review.yaml", "formats: [pdf]", "formats: [pdf]\nwithdrawn: 2026-10-10")
 		}, ""},
 		{"record disposition", func(t *testing.T, root string) {
 			edit(t, root, reviewDir+"/review.yaml", "formats: [pdf]", "formats: [pdf]\ndisposition: https://github.com/OSTERA-org-Working-Groups/jss/issues/7")
@@ -239,6 +245,11 @@ func TestReviewHistory(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			root := gitFixture(t)
 			addReview(t, root)
+			// A review of a work item that is not published yet.
+			write(t, root, "docs/reviews/jsf/v1.0/01/review.yaml", strings.Replace(testReview, "shortname: jcs", "shortname: jsf", 1))
+			write(t, root, "docs/reviews/jsf/v1.0/01/draft-ts-jsf-01.pdf", "%PDF\n")
+			mustSums(t, root, "docs/reviews/jsf/v1.0/01")
+			mustGenerate(t, root)
 			commit(t, root, "announce")
 			c.change(t, root)
 			if c.want == "" {
@@ -284,6 +295,32 @@ func TestSameDraftNumberInTwoVersions(t *testing.T) {
 	}
 	if !strings.Contains(readText(t, root, "docs/reviews/jcs/index.md"), "<h3>Version 1.1</h3>") {
 		t.Error("the review history should show one progress bar per version")
+	}
+}
+
+func TestShortReviews(t *testing.T) {
+	// Reviews may be any length, as long as one review of the version's
+	// drafts lasted at least 30 days before the version is published.
+	root := fixture(t)
+	write(t, root, reviewDir+"/review.yaml", strings.Replace(testReview, "closes: 2026-10-31", "closes: 2026-10-16", 1))
+	write(t, root, reviewDir+"/draft-ts-jcs-01.pdf", "%PDF draft\n")
+	mustSums(t, root, reviewDir)
+	dir := "docs/reviews/jcs/v1.0/02"
+	write(t, root, dir+"/review.yaml", strings.NewReplacer("draft: 1", "draft: 2", "2026-10-01", "2026-10-20", "2026-10-31", "2026-11-19").Replace(testReview))
+	write(t, root, dir+"/draft-ts-jcs-02.pdf", "%PDF draft 2\n")
+	mustSums(t, root, dir)
+	mustGenerate(t, root)
+	if p := validate(root); p.Len() != 0 {
+		t.Fatalf("a 15 day review and a 30 day review should be valid, got %+v", p.list)
+	}
+
+	// A work item that is not published yet may have only short reviews.
+	write(t, root, "docs/reviews/jsf/v1.0/01/review.yaml", strings.NewReplacer("shortname: jcs", "shortname: jsf", "closes: 2026-10-31", "closes: 2026-10-08").Replace(testReview))
+	write(t, root, "docs/reviews/jsf/v1.0/01/draft-ts-jsf-01.pdf", "%PDF\n")
+	mustSums(t, root, "docs/reviews/jsf/v1.0/01")
+	mustGenerate(t, root)
+	if p := validate(root); p.Len() != 0 {
+		t.Fatalf("a short review of an unpublished work item should be valid, got %+v", p.list)
 	}
 }
 

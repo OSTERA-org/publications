@@ -24,7 +24,10 @@ make validate
 make test
 ```
 
-`make validate` fetches `origin` and compares against `origin/main`; use
+`make validate` finds the git remote whose address is
+github.com/OSTERA-org/publications, whatever it is called, fetches it, and
+compares against its `main` branch. Use `make validate REMOTE=<name>` to
+choose the remote yourself, or
 `make validate BASE=` to skip the comparison, or `BASE=<ref>` to compare
 against something else.
 

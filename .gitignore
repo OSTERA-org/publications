@@ -1,0 +1,4 @@
+# Local pubcheck builds
+/tools/pubcheck/pubcheck
+
+.DS_Store

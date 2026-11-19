@@ -1,0 +1,9 @@
+# Everything uses LF line endings in the repository.
+* text=auto eol=lf
+
+# Published files and their checksums are stored byte for byte. Without
+# this, Git on Windows can convert line endings in a published text file
+# on checkout, and its SHA512 checksum would no longer verify. These lines
+# must stay below the one above, because later lines take precedence.
+docs/*/v*/** -text
+docs/*/corrections/** -text

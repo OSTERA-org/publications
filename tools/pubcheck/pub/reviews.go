@@ -29,10 +29,11 @@ const (
 	reviewsIndex = reviewsDir + "/index.md"
 	reviewFile   = "review.yaml"
 
-	// minReviewDays is the shortest public review the Working Methods
-	// allow (Article 29): the closing date must be at least this many
-	// days after the opening date.
-	minReviewDays = 30
+	// fullReviewDays is the length of the public review every work item
+	// needs at least once (Working Methods, Article 29): its closing date
+	// is at least this many days after its opening date. Other reviews of
+	// the same work item may be shorter or longer.
+	fullReviewDays = 30
 
 	reviewEmail = "public-review@ostera.org"
 	wgOrgURL    = "https://github.com/OSTERA-org-Working-Groups"
@@ -210,8 +211,40 @@ func checkReviews(root string, s *site, files bool, p *Problems) {
 	for _, rv := range s.reviews {
 		checkReview(s, rv, p)
 	}
+	checkFullReview(s, p)
 	if files {
 		checkReviewTree(root, s, p)
+	}
+}
+
+// isFullReview reports whether r is a public review of at least
+// fullReviewDays that was not withdrawn.
+func isFullReview(r *Review) bool {
+	opens, ok1 := parseDate(r.Opens)
+	closes, ok2 := parseDate(r.Closes)
+	return ok1 && ok2 && r.Withdrawn == "" && !closes.Before(opens.AddDate(0, 0, fullReviewDays))
+}
+
+// checkFullReview enforces Article 29 of the Working Methods when a version
+// is published: if any public review of drafts for that version is
+// recorded here, at least one of them must have lasted at least
+// fullReviewDays. A version with no recorded reviews is not checked,
+// because its reviews may have been held before pub.ostera.org recorded
+// them, and some document types are not reviewed this way.
+func checkFullReview(s *site, p *Problems) {
+	for _, d := range s.docs {
+		for _, v := range d.Meta.Versions {
+			var any, full bool
+			for _, rv := range reviewsOf(s, d.Meta.Shortname) {
+				if rv.R.Version == v.Version {
+					any = true
+					full = full || isFullReview(rv.R)
+				}
+			}
+			if any && !full {
+				p.Addf(d.Dir+"/metadata.yaml", "version %s cannot be published: none of the public reviews of its drafts lasted at least %d days (Working Methods, Article 29)", v.Version, fullReviewDays)
+			}
+		}
 	}
 }
 
@@ -265,8 +298,8 @@ func checkReview(s *site, rv ReviewDir, p *Problems) {
 	if !okClose {
 		p.Addf(path, "closes %q must be a date in yyyy-mm-dd form", r.Closes)
 	}
-	if okOpen && okClose && closes.Before(opens.AddDate(0, 0, minReviewDays)) {
-		p.Addf(path, "closes must be at least %d days after opens (Working Methods, Article 29); the earliest allowed is %s", minReviewDays, opens.AddDate(0, 0, minReviewDays).Format("2006-01-02"))
+	if okOpen && okClose && !closes.After(opens) {
+		p.Addf(path, "closes must be after opens")
 	}
 	if r.Withdrawn != "" {
 		if _, ok := parseDate(r.Withdrawn); !ok {

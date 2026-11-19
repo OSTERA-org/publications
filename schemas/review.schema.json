@@ -40,7 +40,7 @@
     "opens": { "$ref": "#/$defs/date" },
     "closes": {
       "$ref": "#/$defs/date",
-      "description": "At least 30 days after opens (Working Methods, Article 29). It may later move to a later date, but never to an earlier one."
+      "description": "After opens. At least one review of each version's drafts must last 30 days or more, closing at least 30 days after it opens, before that version is published (Working Methods, Article 29). closes may later move to a later date, but never to an earlier one."
     },
     "formats": {
       "type": "array",

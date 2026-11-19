@@ -1,0 +1,35 @@
+schema_version: 1
+
+# The work item's short name and the draft number, exactly as in the draft
+# file name draft-ts-jcs-02.pdf. Write the number without leading zeros.
+shortname: jcs
+draft: 1
+
+# The document type code in the draft name, and the version the draft is
+# expected to become. Keep the version in double quotes.
+type: TS
+version: "1.0"
+
+title: JSON Canonicalization Scheme (JCS)
+working_group: jss
+
+# The review period. Both dates are included. closes must be after opens.
+# At least one review of each version's drafts must last 30 days or more:
+# closes at least 30 days after opens (Working Methods, Article 29).
+opens: 2026-11-24
+closes: 2026-12-26
+
+# One file for each format, named draft-ts-jcs-02.<format>.
+formats: [pdf]
+
+summary: >
+  Defines a canonical representation of JSON data, so that hashing and
+  signing produce consistent results.
+
+# Leave this out for the first review of a work item.
+changes: >
+  Addresses the comments from the review of draft-ts-jcs-01.
+
+# Added later by Procedure 2, only when needed:
+# withdrawn: 2026-12-10
+# disposition: https://github.com/OSTERA-org-Working-Groups/jss/issues/12

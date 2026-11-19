@@ -14,7 +14,9 @@ Drafts are works in progress. They have not been approved by OSTERA and must not
 
 ## All Public Reviews
 
-No public reviews have been announced yet.
+| Draft | Title | Version | Working Group | Status |
+| --- | --- | --- | --- | --- |
+| [draft-ts-jcs-01](/reviews/jcs/v1.0/01/) | JSON Canonicalization Scheme (JCS) | 1.0 | JSON Signature Scheme (JSS) | <span class="review-status" data-opens="2026-11-24" data-closes="2026-12-26" data-withdrawn="">Open from 2026-11-24 through 2026-12-26</span> |
 
 <!-- END GENERATED reviews -->
 

@@ -27,7 +27,7 @@ This repository is not used to discuss, develop, or write documents. Documents a
 | `README-Makefile.md` | What each `make` command does, and when and why to use it |
 | `AGENTS.md` | The rules for automated agents working in this repository |
 
-The look and feel comes from the shared [OSTERA Pages Theme](https://github.com/OSTERA-org/ostera-pages-theme).
+The look and feel comes from the shared [OSTERA Pages Theme](https://github.com/OSTERA-org/ostera-pages-theme/).
 
 ## How Publishing Works
 

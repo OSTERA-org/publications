@@ -8,8 +8,8 @@ discuss, develop, or write documents.
 OSTERA documents are developed in Working Groups, and organizations and
 individuals can participate in those Working Groups by joining OSTERA.
 
-* **Membership**: https://www.ostera.org/membership
-* **Current Working Groups**: https://www.ostera.org/working-groups
+* **Membership**: https://ostera.org/membership/
+* **Current Working Groups**: https://ostera.org/working-groups/
 
 ## Commenting During a Public Review
 

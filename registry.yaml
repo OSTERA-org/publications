@@ -40,7 +40,10 @@ types:
 # state: active (the group is chartered and working)
 #        closed (the group has closed; it stays listed so older documents
 #                still resolve)
-working_groups: {}
+working_groups:
+  jss:
+    name: JSON Signature Scheme (JSS)
+    state: active
 
 # Document numbers
 # number:    a plain integer with no leading zeros (1, not 0001). Zero
@@ -70,4 +73,8 @@ working_groups: {}
 # reserved earlier. The Working Group then gives the number in its work
 # item's registry.yaml.
 #
-numbers: []
+numbers:
+  - number: 1000
+    shortname: jcs
+    state: assigned
+    allocated: 2026-11-04

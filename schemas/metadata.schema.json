@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/OSTERA-org/publications/main/schemas/metadata.schema.json",
+  "title": "OSTERA Document Metadata",
+  "description": "Everything about a published OSTERA document except its allocation record, which lives in registry.yaml.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "number", "shortname", "title", "authoritative_language",
+    "authoritative_format",
+    "keywords", "summary", "canonical_url", "versions"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "number": { "type": "integer", "minimum": 1 },
+    "shortname": { "$ref": "#/$defs/id" },
+    "title": { "type": "string", "minLength": 1 },
+    "working_group": {
+      "$ref": "#/$defs/id",
+      "description": "Required when any version has developed_by: working_group. Omitted for Policy/Process Documents."
+    },
+    "authoritative_language": { "$ref": "#/$defs/language" },
+    "authoritative_format": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+$",
+      "description": "The format that governs if formats disagree, for example pdf. Every version must include it."
+    },
+    "keywords": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "summary": { "type": "string", "minLength": 1 },
+    "canonical_url": {
+      "type": "string",
+      "pattern": "^https://pub\\.ostera\\.org/[a-z][a-z0-9]*/$"
+    },
+    "obsoletes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "url"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "pattern": "^https://" }
+        }
+      }
+    },
+    "updates": {
+      "type": "array",
+      "description": "The documents this document updates, as listed on its cover page.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "url"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "pattern": "^https://" }
+        }
+      }
+    },
+    "supplements": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "description": "Supplements (SUP) only: the number of the one parent document. Null for every other type."
+    },
+    "supplemented_by": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "integer", "minimum": 1 }
+    },
+    "related": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "integer", "minimum": 1 }
+    },
+    "implementations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["language", "url"],
+        "properties": {
+          "language": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "pattern": "^https://" }
+        }
+      }
+    },
+    "versions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/version" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*$" },
+    "language": { "type": "string", "pattern": "^[a-z]{2}$" },
+    "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "person": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "affiliation"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "affiliation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version", "type", "status", "published", "developed_by",
+        "languages", "formats", "citation", "corrections"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*))?$",
+          "description": "Always quoted in YAML. Matches the cover page exactly."
+        },
+        "type": { "type": "string", "pattern": "^[A-Z]{2,3}$" },
+        "status": { "enum": ["published", "superseded", "withdrawn"] },
+        "published": { "$ref": "#/$defs/date" },
+        "developed_by": { "enum": ["working_group", "board", "secretariat"] },
+        "languages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/language" }
+        },
+        "formats": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9]+$" }
+        },
+        "authors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/person" },
+          "description": "Optional, but a version lists at least one author or editor."
+        },
+        "editors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/person" },
+          "description": "Optional, but a version lists at least one author or editor."
+        },
+        "incorporates": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "citation": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The Citation Format from the cover page of this version, exactly as it appears there."
+        },
+        "corrections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "sequence", "date", "languages", "formats"],
+            "properties": {
+              "kind": { "enum": ["erratum", "corrigendum"] },
+              "sequence": { "type": "integer", "minimum": 1 },
+              "date": { "$ref": "#/$defs/date" },
+              "languages": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": { "$ref": "#/$defs/language" }
+              },
+              "formats": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": { "type": "string", "pattern": "^[a-z0-9]+$" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

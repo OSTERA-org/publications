@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Comment on a Draft
+    url: https://wg.ostera.org/participate/
+    about: Comments on drafts go to the Working Group that is developing the draft, not to this repository.
+  - name: Published OSTERA Documents
+    url: https://pub.ostera.org/
+    about: Read approved OSTERA documents.
+  - name: OSTERA Membership and General Questions
+    url: https://ostera.org/
+    about: Learn about OSTERA and how to participate.

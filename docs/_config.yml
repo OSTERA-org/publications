@@ -1,0 +1,31 @@
+# Jekyll configuration for pub.ostera.org, the OSTERA publications site.
+# GitHub Pages builds this folder (branch main, folder /docs).
+# Do not set baseurl. This site is served from the root of pub.ostera.org.
+#
+# Each published document has a folder, such as jcs/, holding its
+# metadata.yaml and one folder per version, such as jcs/v1.0/. The
+# index.md landing pages, catalog.json, and the marked sections of
+# index.md and about.md are written by pubcheck (tools/pubcheck); do not
+# edit them by hand. Working Group Last Calls and Public Reviews are kept by
+# each Working Group at wg.ostera.org. Published files (PDF and the like)
+# and SHA512SUMS have no front matter, so Jekyll copies them exactly as
+# they are.
+
+title: "OSTERA Publications"
+short_title: "Publications"
+description: "Approved documents published by OSTERA, The Open Standards and Technology Engineering and Research Association."
+
+remote_theme: OSTERA-org/ostera-pages-theme
+plugins:
+  - jekyll-remote-theme
+
+ostera_section: pub
+repo_url: https://github.com/OSTERA-org/publications/
+
+navigation:
+  - title: Home
+    url: /
+  - title: About These Documents
+    url: /about/
+  - title: Last Calls and Public Reviews
+    url: https://wg.ostera.org/reviews/

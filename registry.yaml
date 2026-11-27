@@ -44,6 +44,12 @@ working_groups:
   jss:
     name: JSON Signature Scheme (JSS)
     state: active
+  crgm:
+    name: Cyber Risk Governance Metrics (CRGM)
+    state: active
+  cnscp:
+    name: Connectivity Naming System using Connection Profiles (CNSCP)
+    state: active
 
 # Document numbers
 # number:    a plain integer with no leading zeros (1, not 0001). Zero
